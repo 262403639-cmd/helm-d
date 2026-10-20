@@ -243,7 +243,11 @@ helmd 会话头部 `[helmd 工作台 ▾]` 胶囊按钮就地弹出工作台，�
 
 ## 致谢
 
-- [dsh-purge](https://github.com/YuJunZhiXue/dsh-purge)（YuJunZhiXue）——本项目的工具描述清洗话术表（`tool-wash.ts`）与输入归一化词表参考了其 `core.js` patch #34/#36 与 `default-prompt-inject.md` 的实现，特此致谢。
+本项目融合了大量优秀开源项目的设计思路与实现模式，向社区先行者致敬：
+
+- [ADWMC/helm-x](https://github.com/ADWMC/helm-x) — prompt injection 与评分设计
+- [yynxxxxx/Codex-X](https://github.com/yynxxxxx/Codex-X) — 提示词模板与可视化管理
+- [dsh-purge](https://github.com/YuJunZhiXue/dsh-purge)（YuJunZhiXue）— 工具描述清洗话术表（`tool-wash.ts`）与输入归一化词表参考了其 `core.js` patch #34/#36 与 `default-prompt-inject.md` 的实现
 
 ## Contributing
 

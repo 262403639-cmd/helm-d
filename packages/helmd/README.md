@@ -293,7 +293,11 @@ pnpm install && pnpm build
 
 ## 致谢
 
-- [dsh-purge](https://github.com/YuJunZhiXue/dsh-purge)（YuJunZhiXue）——工具描述清洗话术表与输入归一化词表参考了其实现，特此致谢。
+本项目融合了大量优秀开源项目的设计思路与实现模式：
+
+- [ADWMC/helm-x](https://github.com/ADWMC/helm-x) — prompt injection 与评分设计
+- [yynxxxxx/Codex-X](https://github.com/yynxxxxx/Codex-X) — 提示词模板与可视化管理
+- [dsh-purge](https://github.com/YuJunZhiXue/dsh-purge)（YuJunZhiXue）— 工具描述清洗话术表与输入归一化词表参考了其实现
 
 ## Contributing
 
