@@ -41,9 +41,13 @@ let launchSkipped = false
 let lastFlowError: string | undefined
 
 /** Operator chose to dismiss the star popup for THIS instance launch
- *  (memory-only). The persona is untouched — the popup just goes away. */
+ *  (memory-only). The persona is untouched; the background device-flow
+ *  poll is aborted immediately — zero GitHub traffic after skip. */
 export function skipThisLaunch(): void {
   launchSkipped = true
+  pollAbort?.abort()
+  activeSession = undefined
+  lastFlowError = undefined
 }
 
 /** Whether the gate is actively gating assemblies (locked AND not skipped). */
@@ -130,10 +134,13 @@ function ensureFlow(): void {
       writeState(state)
       activeSession = undefined
     } catch (error) {
-      // Expired/cancelled: clear so the next ensureFlow() re-issues a code.
+      // Expired/cancelled/skipped: clear so the next ensureFlow() re-issues.
       if (generation === pollGeneration) activeSession = undefined
-      lastFlowError = error instanceof Error ? error.message : String(error)
-      console.warn('[helmd] gate: device flow ended:', lastFlowError)
+      const msg = error instanceof Error ? error.message : String(error)
+      if (msg !== 'aborted') {
+        lastFlowError = msg
+        console.warn('[helmd] gate: device flow ended:', msg)
+      }
     }
   })()
 }
