@@ -152,7 +152,7 @@ function ensureFlow(): void {
  *  Unlocked: the persona section carries the active profile body. */
 export function registerGate(ctx: Context): void {
   pluginCtx = ctx
-  // v0.5.1 ruling (operator): the persona is NEVER gated. The active profile
+  // v0.5.0 ruling (operator): the persona is NEVER gated. The active profile
   // body loads unconditionally; the star ask is a WEB-PANEL POPUP ONLY —
   // annoying, not blocking. Skip = this launch ignores the popup.
   try { applyPersonaSection(ctx, profileBody() ?? '') } catch (error) {
