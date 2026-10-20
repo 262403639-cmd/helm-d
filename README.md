@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ helm-d
+# helm-d
 
 <p align="center"><strong>Version 0.5.0</strong></p>
 
