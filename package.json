@@ -1,0 +1,19 @@
+{
+  "name": "helmd",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r exec tsc -p tsconfig.json --noEmit",
+    "test:preset": "node scripts/test-gen-preset.mjs",
+    "test:checks": "node scripts/checks/run-all.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.3"
+  },
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": ">=22.19.0"
+  }
+}
