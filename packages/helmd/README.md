@@ -291,6 +291,10 @@ pnpm install && pnpm build
 - [docs/skillopt-methodology.md](docs/skillopt-methodology.md) — SkillOpt 方法论
 - [docs/skills-reference/](docs/skills-reference) — 导入的渗透测试 skill 合并文档
 
+## 致谢
+
+- [dsh-purge](https://github.com/YuJunZhiXue/dsh-purge)（YuJunZhiXue）——工具描述清洗话术表与输入归一化词表参考了其实现，特此致谢。
+
 ## Contributing
 
 欢迎提 issue 与 PR。改动前请先阅读 [docs/principles.md](docs/principles.md)，并保持两条架构约束：**证据强制入链、参考知识按需读取**。

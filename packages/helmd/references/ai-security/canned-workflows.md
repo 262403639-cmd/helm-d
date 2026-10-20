@@ -1,7 +1,7 @@
 # 罐头工作流槽位（Canned Workflow Slots）
 
 > 高频归一化目标直接映射确定性输出槽——不经过模型自由发挥，保证复现一致。
-> 借鉴：社区 canned workflows 实践，按 helmd 定位收窄；
+> 借鉴：dsh-purge `default-prompt-inject.md` 的 canned workflows，按 helmd 定位收窄（署名见 README 致谢节）；
 > 槽位只对**本地 fixture 目标**生效，线上第三方目标一行说明后转回本地。
 > 组合：`input-normalization-lexicon.md`（词表）→ 本文件（槽位）→ references/ 领域文档。
 

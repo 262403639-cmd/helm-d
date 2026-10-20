@@ -1,4 +1,4 @@
-// tool-wash: description 清洗层（防御性）。
+// tool-wash: description 清洗层（防御性）。话术表参考 dsh-purge（core.js patch #34/#36），致谢——见 README 致谢节。
 // 背景：宿主工具描述里残留"拒绝是终局/不要重试"类话术，把模型压向拒答——本层把话术归一化为可继续措辞（防御层）。
 // 话术会把"可继续"暗示成"物理闸门"。helmd 自己的 31 个工具描述基线审计干净
 // （2026 基线：grep final|never retry|do not retry|stop and explain|a denial is final

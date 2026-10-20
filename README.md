@@ -239,6 +239,10 @@ npm publish --access public
 - [MAINTENANCE.md](MAINTENANCE.md) — 维护手册
 - [CHANGELOG.md](CHANGELOG.md) — 版本历史
 
+## 致谢
+
+- [dsh-purge](https://github.com/YuJunZhiXue/dsh-purge)（YuJunZhiXue）——本项目的工具描述清洗话术表（`tool-wash.ts`）与输入归一化词表参考了其 `core.js` patch #34/#36 与 `default-prompt-inject.md` 的实现，特此致谢。
+
 ## Contributing
 
 欢迎 issue 与 PR。改动前请先阅读 [docs/principles.md](docs/principles.md)，并保持两条架构约束：**证据强制入链、参考知识按需读取**。

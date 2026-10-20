@@ -487,6 +487,10 @@ This project integrates design ideas and implementation patterns from many excel
 - [docs/skills-reference/](docs/skills-reference/authorized-pentest-framework.md) — imported pentest skill digests (authorized framework / practitioner)
 - [docs/skillopt-methodology.md](docs/skillopt-methodology.md) — SkillOpt methodology: train a skill document like weights (six-stage loop + held-out gate), with a mapping onto helmd persona self-optimization
 
+## Acknowledgments
+
+- [dsh-purge](https://github.com/YuJunZhiXue/dsh-purge) (YuJunZhiXue) — the tool-description wash table (`tool-wash.ts`) and the input normalization lexicon reference its `core.js` patch #34/#36 and `default-prompt-inject.md` implementation. With thanks.
+
 ## Contributing
 
 Issues and PRs are welcome. Before making changes, read [docs/principles.md](docs/principles.md) and keep the architecture constraint: reference knowledge is read on demand and never overrides the model's own judgment.
