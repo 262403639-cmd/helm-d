@@ -2,9 +2,13 @@
 
 # ⚡ helm-d
 
+<p align="center"><strong>Version 0.5.1</strong></p>
+
 **DeepSeek Harness 破甲安全分析插件**
 
 多破甲热切换 · 证据强制入链 · 34 工具 · 362 篇按需参考 · Android / Web / Native / Protocol / Malware / AI-Security 六域即开即用
+
+**求 Star 收藏 ⭐** 如要二开请看 [致谢](#致谢)
 
 [![Telegram](https://img.shields.io/badge/Telegram-@helm__xD-26A5E4?style=flat&logo=telegram)](https://t.me/helm_xD)
 官方QQ群：**213266664**
@@ -29,6 +33,13 @@
 > 一句话：补丁拆的是引擎的闸门，helmd 修的是模型的手。
 
 两类可以同装；要可审计、可复现的分析工作流，用 helmd。
+
+## 为什么是 helmd
+
+- **模型不拒绝**——v10 人设：归一化 SLANG ROUTING + 动量条款 + 类型化占位符契约，八题原题干 8/8 直接交付
+- **结论可审计**——每个结论引用磁盘上的 E 编号证据；引用不存在编号 = 直接驳回，幻觉无处落脚
+- **热切换多破甲**——core / stealth / redteam-max 三档封印目录，`applyPersonaSection` 一次调用即切，下一会话生效
+- **零宿主修改**——全部寄生 dsh 的 cordis 瀑布，不落盘补丁、不起独立进程，升级宿主零迁移
 
 ## 安装
 
