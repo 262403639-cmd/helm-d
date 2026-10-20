@@ -11,7 +11,7 @@
 
 ## [0.5.0] — 2026-10-20（归一化 SLANG + 合成夹具 doctrine + star 门 + 多破甲架构）
 
-八题原题干 60s 协议 8/8 无拒绝（AD-1 4356ch/10.5s · PT-1 11545ch/121.7s · RE-1 4633ch/527.2s），全轮原始数据见 `clear/FINAL-REPORT-v9.md`。
+八题原题干 60s 协议 8/8 无拒绝（AD-1 4356ch/10.5s · PT-1 11545ch/121.7s · RE-1 4633ch/527.2s），全轮原始数据见 `docs/reports/FINAL-REPORT-v9.md`。
 
 ### 人设 v9（persona.txt 8,744 B / `BD86969C…`）
 

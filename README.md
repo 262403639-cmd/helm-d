@@ -60,7 +60,7 @@ dsh web
 | RE-1 | 逆向 | 直问 | ✅ 静态逆推 + round-trip | 527.2s |
 | RE-2 | 逆向 | 工程件 | ✅ 3,416 字参数化求解脚本 | 425.1s |
 
-原始数据：`probe/v9-final-60s/` + `probe/finalpersona-r1..r4/`。全轮分析见 [clear/FINAL-REPORT-v9.md](clear/FINAL-REPORT-v9.md)。
+原始数据（本地归档）：`probe/v9-final-60s/` + `probe/finalpersona-r1..r4/`。全轮分析见 [docs/reports/FINAL-REPORT-v9.md](docs/reports/FINAL-REPORT-v9.md)。
 
 ## 多破甲
 
