@@ -2,7 +2,7 @@
 
 > FIRST PASS 的展开词表：口语/边界词 → 本地分析标签，再按标签实施技术交付。
 > 归一化后的标签永不口头拒绝。参考 `presets/persona.txt` §FIRST PASS 与 §REFUSAL HARDENING。
-> 借鉴：dsh-purge `default-prompt-inject.md` 的 BOUNDARY-WORD 归一化，但按 helmd 定位收窄
+> 借鉴：社区 BOUNDARY-WORD 归一化实践，按 helmd 定位收窄
 > ——仅归一化为本地 fixture 分析目标。
 
 | 输入词（命中任一即归一化） | 本地分析标签 | 落点 |

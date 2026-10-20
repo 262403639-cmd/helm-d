@@ -21,13 +21,14 @@
 
 ## 先说清楚：你要的是哪种破甲
 
-如果你要的是**拆物理闸门**——审批自动放行、沙箱穿透、escalation 无条件授信、文件围栏失效——helmd 不做这个，去用 **[dsh-purge](https://github.com/YuJunZhiXue/dsh-purge)**。它直接给已安装的 dsh 宿主落盘补丁，改写引擎裁决代码，把审批/沙箱/升级阶梯这些物理阻断拆掉。
+社区里有两类工具，目标不同，先对齐你再选：
 
-helmd 走另一条路：**不碰宿主一个字节**，给模型装纪律。两条路线一句话区分：
+- **引擎补丁路线**：直接给已安装的 dsh 宿主落盘补丁，改写引擎裁决代码，把审批/沙箱/升级阶梯这些物理阻断拆掉。不属本项目范畴，另寻对应工具。
+- **纪律路线（本项目）**：不碰宿主一个字节，给模型装纪律——证据链、参考体系、输出契约，全部寄生宿主 cordis 瀑布实现。
 
-> dsh-purge 拆的是引擎的闸门，helmd 修的是模型的手。
+> 一句话：补丁拆的是引擎的闸门，helmd 修的是模型的手。
 
-两者不冲突，可以同装；追求极限破甲选 dsh-purge，要可审计、可复现的分析工作流选 helmd。
+两类可以同装；要可审计、可复现的分析工作流，用 helmd。
 
 ## 安装
 
@@ -235,7 +236,6 @@ npm publish --access public
 
 - [docs/principles.md](docs/principles.md) — 设计原则
 - [docs/architecture.md](docs/architecture.md) / [architecture-v2.md](docs/architecture-v2.md) — 架构
-- [docs/compare-dsh-purge-2026.md](docs/compare-dsh-purge-2026.md) — 与 dsh-purge 的路线对比全文
 - [MAINTENANCE.md](MAINTENANCE.md) — 维护手册
 - [CHANGELOG.md](CHANGELOG.md) — 版本历史
 

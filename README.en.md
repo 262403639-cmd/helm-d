@@ -116,7 +116,7 @@ tool-wash description washing → persist evidence wrap → bootstrap first-turn
 
 | Component | Mount point | Responsibility |
 |-----------|-------------|----------------|
-| `tool-wash.ts` | `tools.register` wrap | Rewrites "a denial is final / do not retry" tool-description phrasing into continuable wording (defensive layer, dsh-purge wash table); hits are logged (verbose) |
+| `tool-wash.ts` | `tools.register` wrap | Rewrites "a denial is final / do not retry" tool-description phrasing into continuable wording (defensive layer); hits are logged (verbose) |
 | `persist.ts` | `tools.register` wrap | All later-registered domain tools auto-persist output to `evidence/` (soft gate, no per-tool edits) |
 | `advisory-hook.ts` | `system-prompt/assemble` (outer) | Reckons the previous turn's advisories against the session log; detects delivery refusal / hedging phrasing and injects stance metrics (no-hedge / challenged / report-prefix / normalizer); sensitive input passes `input-normalizer.ts` first |
 | `model-probe.ts` | `llm_probe` calls OpenAI-compatible Chat Completions and audits response, classification, status and latency; `llm_eval_suite` adds synthetic-canary robustness checks; hidden reasoning is not collected |

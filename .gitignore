@@ -36,3 +36,5 @@ dist.bak-*
 solo.md
 model-catalog.json
 provider-probe.json
+
+package/
