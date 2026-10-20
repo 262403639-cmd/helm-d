@@ -44,7 +44,7 @@ dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/latest/dow
 dsh web
 ```
 
-会话里发送 `helmd` 即激活。首次启动会在网页右上角弹出一个 Star 请求面板（GitHub 一次性代码 + 授权链接），**不影响任何功能**，点「跳过本次启动」即消失；愿意支持就授权 + Star，之后不再出现。npm 发布包内人设明文 0 字节（AES-256-GCM 封印）。
+会话里发送 `helmd` 即激活。首次启动会在网页右上角弹出一个 Star 请求面板（GitHub 一次性代码 + 授权链接），**不影响任何功能**，点「跳过本次启动」即消失；愿意支持就授权 + Star，之后不再出现。`npm add` 渠道同样可用：包内人设明文 0 字节（AES-256-GCM 封印 + 前置空串），内容扫描面为零。
 
 ## 八题实测
 
@@ -201,15 +201,6 @@ helmd 会话头部 `[helmd 工作台 ▾]` 胶囊按钮就地弹出工作台，�
 - **工具货架**：分类层级树，从 `~/.dsh/helmd-tools/TOOLS.md` 账本动态解析
 - **模型评测**：模型响应分类、首段与延迟记录
 - **拦截日志**：流式拒绝拦截闭环的计数与摘录
-
-## npm 发布
-
-```bash
-cd packages/helmd
-npm publish --access public
-```
-
-包内明文人设 0 字节：`profiles.dat` 为 AES-256-GCM 封印，`preset.generated.patch.yml` 的 persona prefix 为空串。npm 内容扫描面为零。
 
 ## 实战案例
 
