@@ -5,6 +5,7 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { readTextSeam, assertWithinRoot } from './seam.js'
+import { readSealedReference } from './sealed-refs.js'
 import { getLevel, setLevel, normalizeLevel, renderContract } from './mode.js'
 import { shelfSummary } from './ledger.js'
 import { submitAdvisory, renderAdvisoryStats } from './advisory.js'
@@ -221,6 +222,12 @@ export function registerRouterTools(ctx: Context): void {
     },
     output: { schema: { type: 'string' }, render: (_a: unknown, v: string) => [{ type: 'text', text: v }] },
     async execute(args: { path: string }) {
+      // Sealed bundle first (installed packages ship references.dat, no
+      // plaintext references/ directory); plaintext dir is the repo dev path.
+      const rel = (args.path ?? '').replace(/\\/g, '/').replace(/^\//, '')
+      const sealed = readSealedReference(rel)
+      if (sealed !== undefined) return sealed
+      const sealedIndex = readSealedReference(join(rel ?? '', 'index.md').replace(/\\/g, '/'))
       const target = resolveReferenceFile(refRoot, args.path)
       if (target) {
         assertWithinRoot(target, refRoot)

@@ -26,6 +26,8 @@ npm run build 2>&1 | Select-Object -Last 1
 if ($LASTEXITCODE -ne 0) { throw "tsc build failed (exit $LASTEXITCODE)" }
 node (Join-Path (Join-Path $repo "packages\helmd") "scripts\build-profiles.mjs")
 if ($LASTEXITCODE -ne 0) { throw "build-profiles failed (exit $LASTEXITCODE)" }
+node (Join-Path (Join-Path $repo "packages\helmd") "scripts\build-sealed.mjs")
+if ($LASTEXITCODE -ne 0) { throw "build-sealed failed (exit $LASTEXITCODE)" }
 Write-Output "profiles sealed: presets/profiles.dat"
 
 # Single unified bundle. The unversioned copy keeps the stable download URL

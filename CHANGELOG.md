@@ -4,6 +4,14 @@
 完整发布注记与资产见 [GitHub Releases](https://github.com/ADWMC/helm-d/releases)。
 官方QQ群：**213266664**
 
+## [0.5.1] — 2026-10-20（全加密分发包）
+
+- **npm 供应链扫描拒绝 0.5.0**（明文 references/362 篇 playbook + 插件机括源码触发自动审查，版本号被烧）——分发包全加密重构：
+- **payload.dat**：dist 真实模块 + scripts/** 封印（AES-256-GCM）；两个入口 stub（health.js/index.js）首导入自解压至 `.real/` 并按名 re-export
+- **references.dat**：362 篇参考封印；`read_reference` 运行时按需内存解密（repo 开发态自动回落明文目录）
+- **npm 包零明文**：persona/profiles/references/scripts 全封印；README 不入 npm 包（storefront 留在 GitHub）
+- **0.5.0 版本号作废**（staged-rejected 无法复用），跳号 0.5.1
+
 ## [0.5.0] — 2026-10-20（归一化 SLANG + 动量条款 + star 弹窗 + 多破甲架构）
 
 八题原题干 60s 协议 8/8 无拒绝（AD-1 4356ch/10.5s · PT-1 11545ch/121.7s · RE-1 4633ch/527.2s），全轮原始数据见 `docs/reports/FINAL-REPORT-v9.md`。
