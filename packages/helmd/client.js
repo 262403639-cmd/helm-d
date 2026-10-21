@@ -814,19 +814,19 @@ exports.apply = function apply(ctx) {
 				style.id = STYLE_ID;
 				style.textContent = [
 					"#" + PANEL_ID + "{position:fixed;top:16px;right:16px;z-index:99999;",
-					"width:340px;background:var(--dsw-alias-bg-primary,#1a1a1a);color:var(--dsw-alias-label-primary,#e5e5e5);",
-					"border:1px solid var(--dsw-alias-state-warn-label,#b45309);border-radius:10px;",
+					"width:340px;background:#16181d;color:#e8eaed;",
+					"border:1px solid #c46a1f;border-radius:10px;",
 					"padding:16px;font-family:inherit;font-size:13px;line-height:1.5;",
 					"box-shadow:0 8px 24px rgba(0,0,0,.4)}",
-					"#" + PANEL_ID + " .hg-title{font-weight:700;font-size:14px;margin:0 0 8px}",
+					"#" + PANEL_ID + " .hg-title{font-weight:700;font-size:14px;margin:0 0 8px;color:#ffffff}",
 					"#" + PANEL_ID + " .hg-code{font-family:" + MONO + ";font-size:20px;letter-spacing:2px;",
-					"background:var(--dsw-alias-bg-secondary,#111);padding:8px 12px;border-radius:6px;",
+					"background:#0d0f12;color:#ffd27d;padding:8px 12px;border-radius:6px;",
 					"text-align:center;margin:8px 0;cursor:pointer}",
 					"#" + PANEL_ID + " .hg-row{display:flex;gap:8px;margin:10px 0}",
-					"#" + PANEL_ID + " a{color:var(--dsw-alias-link,#6cb6ff);text-decoration:none}",
-					"#" + PANEL_ID + " button{flex:1;padding:6px 10px;border-radius:6px;border:1px solid var(--dsw-alias-border,#333);",
-					"background:var(--dsw-alias-bg-secondary,#222);color:inherit;cursor:pointer;font-size:12px}",
-					"#" + PANEL_ID + " button:hover{border-color:var(--dsw-alias-state-success-primary,#1b7f4d)}",
+					"#" + PANEL_ID + " a{color:#6cb6ff;text-decoration:none}",
+					"#" + PANEL_ID + " button{flex:1;padding:6px 10px;border-radius:6px;border:1px solid #3a3f47;",
+					"background:#22262d;color:#e8eaed;cursor:pointer;font-size:12px}",
+					"#" + PANEL_ID + " button:hover{border-color:#2ea36b}",
 					"#" + PANEL_ID + " .hg-skip{opacity:.7;font-size:11px}",
 				].join("");
 				document.head.appendChild(style);
@@ -858,7 +858,7 @@ exports.apply = function apply(ctx) {
 			var st = el.querySelector("#hg-status");
 			if (status.error) {
 				st.textContent = "状态：出错 — " + status.error + "（下次轮询自动重试）";
-				st.style.color = "var(--dsw-alias-state-error-primary, #b91c1c)";
+				st.style.color = "#ff6b6b";
 			} else {
 				st.textContent = "状态：" + (status.userCode ? "等待授权（代码 " + status.userCode + "）" : "生成中…");
 				st.style.color = "";
