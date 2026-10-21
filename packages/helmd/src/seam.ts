@@ -3,6 +3,7 @@ import { accessSync, constants, existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { execFile } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { readSealedByAbsPath } from './sealed-refs.js'
 import { promisify } from 'node:util'
 import { delimiter, dirname, join, normalize, resolve, sep } from 'node:path'
 
@@ -91,6 +92,10 @@ export function assertWithinRoot(absPath: string, root: string): string {
  * when the host has no provider.
  */
 export async function readTextSeam(ctx: Context, absPath: string): Promise<string> {
+  if (!existsSync(absPath)) {
+    const sealed = readSealedByAbsPath(absPath)
+    if (sealed !== undefined) return sealed
+  }
   const fs = ctx.get('fs')
   if (fs != null && typeof fs.resolve === 'function' && typeof fs.readText === 'function') {
     const target = await fs.resolve(absPath)

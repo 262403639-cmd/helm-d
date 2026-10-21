@@ -46,3 +46,18 @@ export function readSealedReference(relPath: string): string | undefined {
   const key = relPath.replace(/\\/g, '/').replace(/^\//, '')
   return m.get(key)
 }
+
+/** Sealed content by absolute path: any path containing a `references`
+ *  segment maps to its bundle key (references/<rest>). Used by readTextSeam
+ *  so every domain tool's plaintext reference read transparently falls back
+ *  to the encrypted bundle when the plaintext file is absent. */
+export function readSealedByAbsPath(absPath: string): string | undefined {
+  const m = manifest()
+  if (m === undefined) return undefined
+  const norm = absPath.replace(/\\/g, '/')
+  const marker = '/references/'
+  const idx = norm.lastIndexOf(marker)
+  if (idx < 0) return undefined
+  const key = 'references' + norm.slice(idx + marker.length)
+  return m.get(key)
+}
