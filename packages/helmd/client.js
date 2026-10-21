@@ -690,12 +690,14 @@ exports.apply = function apply(ctx) {
 					fetch('/api/helmd/tools').then(function(r){return r.json()}).catch(function(){return null}),
 					fetch('/api/helmd/eval').then(function(r){return r.json()}).catch(function(){return null}),
 					fetch('/api/helmd/intercept').then(function(r){return r.json()}).catch(function(){return null}),
+					fetch('/api/helmd/health').then(function(r){return r.json()}).catch(function(){return null}),
 				]).then(function(results) {
 					if (!alive) return;
 					setData({
 						tools: (results[0] && results[0].data) || [],
 						eval: (results[1] && results[1].data) || null,
 						intercept: (results[2] && results[2].data) || null,
+						health: (results[3] && results[3].data) || null,
 					});
 				});
 			}
@@ -741,7 +743,7 @@ exports.apply = function apply(ctx) {
 						h("span", { style: { fontSize: 13, fontWeight: 600 } }, "helmd 工作台"),
 					),
 					h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
-						h("span", { style: { fontSize: 11, padding: "1px 6px", borderRadius: 999, background: "rgba(16,185,129,0.15)", color: "var(--dsw-alias-state-success-primary, #34d399)", border: "1px solid rgba(16,185,129,0.3)" } }, "0.4.0"),
+						h("span", { style: { fontSize: 11, padding: "1px 6px", borderRadius: 999, background: "rgba(16,185,129,0.15)", color: "var(--dsw-alias-state-success-primary, #34d399)", border: "1px solid rgba(16,185,129,0.3)" } }, (data.health && data.health.version) || "?"),
 						props.onClose ? h("button", { type: "button", onClick: props.onClose, "aria-label": "关闭", style: { border: 0, background: "transparent", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", borderRadius: 4, color: "var(--dsw-alias-label-tertiary, #888)" } }, h(CloseIcon, null)) : null,
 					)
 				),
