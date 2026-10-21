@@ -1,10 +1,10 @@
 import type { Context } from '@deepseek-ai/cordis'
 import { defineTool } from '@deepseek-ai/dsh-tools'
-import { resolve } from 'node:path'
+import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { readTextSeam } from '../seam.js'
+import { packageRoot, readTextSeam  } from '../seam.js'
 
-const refRoot = resolve(fileURLToPath(new URL('.', import.meta.url)), '../../references/toolbox')
+const refRoot = join(packageRoot(), 'references', 'toolbox')
 
 // 信号 -> 首选工具 | 替代 | 存证格式（按分类分组）
 const rules: Record<string, string> = {

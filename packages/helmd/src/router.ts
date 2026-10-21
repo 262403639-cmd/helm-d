@@ -227,7 +227,8 @@ export function registerRouterTools(ctx: Context): void {
       const rel = (args.path ?? '').replace(/\\/g, '/').replace(/^\//, '')
       const sealed = readSealedReference(rel)
       if (sealed !== undefined) return sealed
-      const sealedIndex = readSealedReference(join(rel ?? '', 'index.md').replace(/\\/g, '/'))
+      const sealedIndex = readSealedReference(rel ? rel.replace(/\/?$/, '/index.md') : 'index.md')
+      if (sealedIndex !== undefined) return sealedIndex
       const target = resolveReferenceFile(refRoot, args.path)
       if (target) {
         assertWithinRoot(target, refRoot)

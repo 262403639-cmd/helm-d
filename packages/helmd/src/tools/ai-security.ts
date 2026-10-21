@@ -1,8 +1,8 @@
 import type { Context } from '@deepseek-ai/cordis'
 import { defineTool } from '@deepseek-ai/dsh-tools'
-import { resolve } from 'node:path'
+import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { readTextSeam, runSeam, assertWithinRoot } from '../seam.js'
+import { packageRoot, readTextSeam, runSeam, assertWithinRoot  } from '../seam.js'
 import {
   probeModel,
   renderProbe,
@@ -12,9 +12,8 @@ import {
   type ProbeStrategy,
 } from '../model-probe.js'
 
-const refRoot = resolve(fileURLToPath(new URL('.', import.meta.url)), '../../references/ai-security')
-const scriptRoot = resolve(fileURLToPath(new URL('.', import.meta.url)), '../../scripts/ai-security')
-const packageRoot = resolve(fileURLToPath(new URL('.', import.meta.url)), '../..')
+const refRoot = join(packageRoot(), 'references', 'ai-security')
+const scriptRoot = join(packageRoot(), 'scripts', 'ai-security')
 
 export function registerAiSecurityTools(ctx: Context): void {
   ctx.tools.register(defineTool({
@@ -37,7 +36,7 @@ export function registerAiSecurityTools(ctx: Context): void {
     },
     output: { schema: { type: 'string' }, render: (_a: unknown, v: string) => [{ type: 'text', text: v }] },
     async execute(args: any) {
-      return await runSeam(ctx, ['python', resolve(scriptRoot, 'ai-security-analysis_llm_sim.py'), '--system-prompt', args.system_prompt, '--input', args.input], packageRoot)
+      return await runSeam(ctx, ['python', resolve(scriptRoot, 'ai-security-analysis_llm_sim.py'), '--system-prompt', args.system_prompt, '--input', args.input], packageRoot())
     },
   }))
   ctx.tools.register(defineTool({

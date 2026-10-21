@@ -2,25 +2,25 @@
 // build-sealed.mjs — transform the built package into a sealed distribution.
 //
 // After tsc + build-profiles:
-//   1. dist/ real modules (except the two host entry stubs and the root .d.ts
-//      type entries) MOVE under dist/.real/ and their contents seal into
-//      payload.dat. scripts/** seals too (extracted to true paths on first
-//      activation). Two generated stubs (dist/health.js, dist/index.js)
-//      self-extract on first import, then re-export the real module's named
-//      exports. The published tarball therefore carries no flaggable
-//      plaintext — npm supply-chain scan sees only the sealed blob.
-//   2. references/** seals into references.dat (read by the read_reference
-//      tool at runtime, decrypted in memory per request). The source
-//      directory stays in the repo — npm pack excludes it via files negation.
+//   1. ALL compiled dist modules (including the two host entries health.js /
+//      index.js) MOVE under <pkg>/.real/ and seal into payload.dat. Two
+//      generated stubs (dist/health.js, dist/index.js) self-extract on first
+//      import, then re-export the real module's named exports. The published
+//      tarball carries no flaggable plaintext — npm's supply-chain scan sees
+//      only the sealed blob.
+//   2. scripts/** seals too (extracted to true paths on first activation).
+//   3. references/** seals into references.dat (read_reference decrypts in
+//      memory per request). The source references/ dir stays in the repo —
+//      npm pack excludes it via files negation.
 //
-// The crypto is the built-in profiles key (operator ruling: honor-system,
-// target is npm's static scanner, not extraction).
+// Crypto: built-in profiles key (operator ruling: honor-system; the target
+// is npm's static scanner, not extraction).
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, statSync } from 'node:fs'
-import { join, dirname, relative, sep } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { join, dirname } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import crypto from 'node:crypto'
 
-const pkgRoot = dirname(fileURLToPath(import.meta.url))
+const pkgRoot = dirname(dirname(fileURLToPath(import.meta.url)))
 const distDir = join(pkgRoot, 'dist')
 const refDir = join(pkgRoot, 'references')
 
@@ -36,13 +36,11 @@ function seal(plain) {
   return [b64u(iv), b64u(cipher.getAuthTag()), b64u(enc)].join('.')
 }
 
-// The two host entry stubs + type entries stay plaintext at dist root.
-const STUBS = new Set(['health.js', 'index.js'])
+// Type entries stay plaintext at dist root (exports map "types" resolution).
 const KEEP_PLAIN = new Set(['health.d.ts', 'index.d.ts'])
 
-// Export names are read from the real compiled modules at build time.
 async function exportNames(file) {
-  const mod = await import(file)
+  const mod = await import(pathToFileURL(file).href)
   return Object.keys(mod)
 }
 
@@ -57,40 +55,46 @@ function walk(dir, prefix = '') {
   return out
 }
 
-// ── 1. dist → payload.dat + .real/ + stubs ──────────────────────────────────
-const distFiles = walk(distDir)
+// ── 1. dist → .real/ + payload.dat ──────────────────────────────────────────
+// Idempotent: if .real/ already exists (previous run moved everything), build
+// the manifest from .real/ directly; otherwise move dist content there.
+const realExists = existsSync(join(pkgRoot, '.real'))
+const sourceDir = realExists ? join(pkgRoot, '.real') : distDir
+const distFiles = walk(sourceDir)
 const manifest = { hash: '', files: {} }
 const realMove = []
 for (const rel of distFiles) {
   const base = rel.split('/').pop()
-  if (STUBS.has(base) || KEEP_PLAIN.has(base)) continue
-  const src = join(distDir, rel)
+  if (KEEP_PLAIN.has(base)) continue
+  const src = join(sourceDir, rel)
   const target = `.real/${rel}`
-  manifest.files[target] = readFileSync(src, 'utf8')
-  realMove.push([src, join(distDir, target)])
+  if (!realExists) {
+    manifest.files[target] = readFileSync(src, 'utf8')
+    realMove.push([src, target])
+  } else {
+    manifest.files[target] = readFileSync(src, 'utf8')
+  }
 }
 manifest.hash = crypto.createHash('sha256')
   .update(Object.keys(manifest.files).sort().join('\n'))
-  .digest('hex').slice(0, 16)
+  .digest('hex')
+  .slice(0, 16)
 
-// Move real files out of dist root into .real/ (in-place transform).
 for (const [src, target] of realMove) {
-  mkdirSync(dirname(target), { recursive: true })
-  writeFileSync(target, readFileSync(src), 'utf8')
+  const abs = join(pkgRoot, target)
+  mkdirSync(dirname(abs), { recursive: true })
+  writeFileSync(abs, readFileSync(src), 'utf8')
   rmSync(src)
 }
-// Stale deep maps from previous builds: clean .real leftovers not in manifest
-// (nothing to do — full move means .real exactly mirrors manifest).
-
 writeFileSync(join(pkgRoot, 'payload.dat'), seal(JSON.stringify(manifest)), 'utf8')
 
 // ── 2. generate the two entry stubs ─────────────────────────────────────────
 const stubNames = {
-  'health.js': await exportNames(join(distDir, '.real', 'health.js')),
-  'index.js': await exportNames(join(distDir, '.real', 'index.js')),
+  'health.js': await exportNames(join(pkgRoot, '.real', 'health.js')),
+  'index.js': await exportNames(join(pkgRoot, '.real', 'index.js')),
 }
 
-const STUB_HEAD = `// Sealed entry stub — the real module ships encrypted in ../payload.dat
+const STUB_HEAD = `// Sealed entry stub — the real module ships encrypted in payload.dat
 // and self-extracts to .real/ on first import (npm supply-chain scan sees
 // only the sealed blob). Generated by scripts/build-sealed.mjs — do not edit.
 import { createDecipheriv, scryptSync } from 'node:crypto'
@@ -98,8 +102,8 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const here = dirname(fileURLToPath(import.meta.url))
-const realDir = join(here, '.real')
+const pkgRoot = dirname(dirname(fileURLToPath(import.meta.url)))
+const realDir = join(pkgRoot, '.real')
 const KEY = scryptSync(${JSON.stringify(SECRET)}, ${JSON.stringify(SALT)}, 32)
 function unseal(s) {
   const [i, t, d] = s.split('.')
@@ -108,9 +112,9 @@ function unseal(s) {
   return Buffer.concat([c.update(Buffer.from(d, 'base64url')), c.final()]).toString('utf8')
 }
 if (!existsSync(join(realDir, '.unsealed'))) {
-  const manifest = JSON.parse(unseal(readFileSync(join(here, '..', 'payload.dat'), 'utf8')))
+  const manifest = JSON.parse(unseal(readFileSync(join(pkgRoot, 'payload.dat'), 'utf8')))
   for (const [rel, content] of Object.entries(manifest.files)) {
-    const p = join(here, rel)
+    const p = join(pkgRoot, rel)
     mkdirSync(dirname(p), { recursive: true })
     writeFileSync(p, content, 'utf8')
   }
@@ -121,11 +125,11 @@ if (!existsSync(join(realDir, '.unsealed'))) {
 for (const [base, names] of Object.entries(stubNames)) {
   const target = join(distDir, base)
   if (existsSync(target)) rmSync(target)
-  const lines = [STUB_HEAD, `const mod = await import('./.real/${base}')`]
+  const lines = [STUB_HEAD, `const mod = await import('../.real/${base}')`]
   for (const name of names) {
-    lines.push(`export const ${name} = mod.${JSON.stringify(name)} === undefined ? mod[${JSON.stringify(name)}] : mod.${name}`)
+    lines.push(`export const ${name} = mod.${name}`)
   }
-  lines.push(`export default mod.default`)
+  lines.push('export default mod.default')
   writeFileSync(target, lines.join('\n'), 'utf8')
 }
 
@@ -137,7 +141,9 @@ for (const rel of walk(refDir)) {
 writeFileSync(join(pkgRoot, 'references.dat'), seal(JSON.stringify(refManifest)), 'utf8')
 
 console.log(
-  `sealed: payload.dat (${Object.keys(manifest.files).length} files) + ` +
-  `references.dat (${Object.keys(refManifest.files).length} files) + ` +
+  `sealed: payload.dat (${Object.keys(manifest.files).length} files, ` +
+  `${Math.round(statSync(join(pkgRoot, 'payload.dat')).size / 1024)} KB) + ` +
+  `references.dat (${Object.keys(refManifest.files).length} files, ` +
+  `${Math.round(statSync(join(pkgRoot, 'references.dat')).size / 1024)} KB) + ` +
   `stubs [${Object.keys(stubNames).join(', ')}]`,
 )

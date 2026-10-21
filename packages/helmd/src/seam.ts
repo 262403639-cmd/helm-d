@@ -1,9 +1,22 @@
 import type { Context } from '@deepseek-ai/cordis'
-import { accessSync, constants } from 'node:fs'
+import { accessSync, constants, existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { execFile } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
-import { delimiter, join, normalize, resolve, sep } from 'node:path'
+import { delimiter, dirname, join, normalize, resolve, sep } from 'node:path'
+
+/** Walk up from this module to the package root (the directory holding
+ *  package.json). Modules live at dist/ (dev) or dist/.real/ (sealed runtime)
+ *  — fixed ../ depth breaks in the .real layout, so locate the root by marker. */
+export function packageRoot(): string {
+  let dir = dirname(fileURLToPath(import.meta.url))
+  for (let i = 0; i < 6; i++) {
+    if (existsSync(join(dir, 'package.json'))) return dir
+    dir = dirname(dir)
+  }
+  return dir
+}
 
 const execFileAsync = promisify(execFile)
 const MAX_OUTPUT_BYTES = 256 * 1024

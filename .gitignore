@@ -38,3 +38,5 @@ model-catalog.json
 provider-probe.json
 
 package/
+
+.real/

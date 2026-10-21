@@ -1,7 +1,7 @@
 // Persona-profile catalog: sealed profiles.dat → enumerable profiles with an
-// active pointer. M1 scope: the "core" profile is the current v9 persona text;
+// active pointer. M1 scope: the "core" profile is the current persona text;
 // additional profiles are plain catalog entries (content TBD by operator).
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { unseal } from './crypt.js'
@@ -20,12 +20,19 @@ export interface Catalog {
   profiles: Profile[]
 }
 
-const catalogPath = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '..',
-  'presets',
-  'profiles.dat',
-)
+/** Walk up from this module to the package root. Modules live either at
+ *  dist/ (dev) or dist/.real/ (sealed runtime) — fixed ../ depth breaks in
+ *  the .real layout, so locate the root by its package.json marker. */
+function packageRoot(): string {
+  let dir = dirname(fileURLToPath(import.meta.url))
+  for (let i = 0; i < 6; i++) {
+    if (existsSync(join(dir, 'package.json'))) return dir
+    dir = dirname(dir)
+  }
+  return dir
+}
+
+const catalogPath = join(packageRoot(), 'presets', 'profiles.dat')
 
 let cached: Catalog | undefined
 
