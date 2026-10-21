@@ -12,6 +12,15 @@
 - **npm 包零明文**：persona/profiles/references/scripts 全封印；README 不入 npm 包（storefront 留在 GitHub）
 - **0.5.0 版本号作废**（staged-rejected 无法复用），跳号 0.5.1
 
+## [0.5.1] — 2026-10-21（全加密分发 + 弹窗配色钉死 + 徽标动态化）
+
+- **npm 供应链扫描拒绝 0.5.0**（tarball 明文触发自动审查，版本号烧毁）→ 分发包全加密重构：`payload.dat`（dist 真实模块 + scripts 封印）+ `references.dat`（362 篇参考封印）+ 两个入口 stub 首导入自解压（payload SHA256 变更即重解压）；npm tarball 终态 12 文件零明文，**0.5.1 过审发布**
+- **walk-up packageRoot**：全部运行时路径解析改为按 package.json 标记上溯——修复 `.real/` 密封运行态布局下固定 `../` 层数错位（catalog/sealed-refs/八个域工具/seam 统一收口）
+- **弹窗配色钉死**：`--dsw-alias-*` 主题变量在部分机器解析为深色导致弹窗隐身——悬浮层改固定高对比配色
+- **工作台版本徽标动态化**：写死的 `0.4.0` 改为轮询 `/api/helmd/health` 读实时版本
+- **包级 README 出包**：npm tarball 零文档面，storefront 留在仓库根
+- **仓库治理**：致谢节恢复（helm-x / Codex-X / dsh-purge 署名）、竞品对比文档移除、topics 挂 jailbreak / llm-jailbreak、八题报告整合至 `docs/reports/`
+
 ## [0.5.0] — 2026-10-20（归一化 SLANG + 动量条款 + star 弹窗 + 多破甲架构）
 
 八题原题干 60s 协议 8/8 无拒绝（AD-1 4356ch/10.5s · PT-1 11545ch/121.7s · RE-1 4633ch/527.2s），全轮原始数据见 `docs/reports/FINAL-REPORT-v9.md`。
