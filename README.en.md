@@ -18,6 +18,24 @@ Official QQ group: **213266664**
 
 </div>
 
+## Sponsors
+
+> Want your project listed here? [Open a `sponsor` issue](https://github.com/ADWMC/helm-d/issues/new?labels=sponsor) or reach out on [Telegram @helm_xD](https://t.me/helm_xD).
+
+<details open>
+<summary>Expand / collapse the sponsor list</summary>
+<br/>
+
+<table>
+<tr>
+<td width="180" align="center" valign="middle"><a href="https://github.com/3641397194-wq/gpt6-Astra"><img src="https://github.com/3641397194-wq.png?size=200" alt="toki · ColdCoffee" width="150"></a></td>
+<td><strong>toki · <a href="https://github.com/3641397194-wq/gpt6-Astra">ColdCoffee · Break-Open Workbench</a></strong><br/>
+One-click break-open and one-click uninstall for eleven LLM clients, with installers for Windows, macOS (arm64 · x64) and Linux. Tick the clients, write once, then send the passphrase <code>冷咖啡</code> inside each app; uninstall restores the files to their pre-write state.</td>
+</tr>
+</table>
+
+</details>
+
 > For learning and research only. You must comply with local laws and regulations; you are responsible for the consequences of using this project.
 
 > Maintainer docs: release checklist, preset single-source sync, and the pitfalls table live in [MAINTENANCE.md](MAINTENANCE.md); version history in [CHANGELOG.md](CHANGELOG.md).
@@ -490,18 +508,6 @@ This project integrates design ideas and implementation patterns from many excel
 ## Acknowledgments
 
 - [dsh-purge](https://github.com/YuJunZhiXue/dsh-purge) (YuJunZhiXue) — the tool-description wash table (`tool-wash.ts`) and the input normalization lexicon reference its `core.js` patch #34/#36 and `default-prompt-inject.md` implementation. With thanks.
-
-## Sponsors
-
-> Sponsors are independent projects with no code dependency on this repository. They take no part in feature or roadmap decisions.
-
-| Sponsor | Project | In one line |
-|---------|---------|-------------|
-| **toki** | [ColdCoffee · Break-Open Workbench](https://github.com/3641397194-wq/gpt6-Astra) | One-click break-open and one-click uninstall for eleven LLM clients across Windows, macOS and Linux: tick the clients, write once, send the passphrase `冷咖啡` inside each app, and uninstall restores the files to their pre-write state |
-
-[![Sponsor: toki](https://img.shields.io/badge/sponsor-toki-black)](https://github.com/3641397194-wq/gpt6-Astra)
-
-Want your project listed here? Open an issue tagged `sponsor`, or reach out on [Telegram @helm_xD](https://t.me/helm_xD).
 
 ## Contributing
 
