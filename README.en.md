@@ -491,6 +491,18 @@ This project integrates design ideas and implementation patterns from many excel
 
 - [dsh-purge](https://github.com/YuJunZhiXue/dsh-purge) (YuJunZhiXue) — the tool-description wash table (`tool-wash.ts`) and the input normalization lexicon reference its `core.js` patch #34/#36 and `default-prompt-inject.md` implementation. With thanks.
 
+## Sponsors
+
+> Sponsors are independent projects with no code dependency on this repository. They take no part in feature or roadmap decisions.
+
+| Sponsor | Project | In one line |
+|---------|---------|-------------|
+| **toki** | [ColdCoffee · Break-Open Workbench](https://github.com/3641397194-wq/gpt6-Astra) | One-click break-open and one-click uninstall for eleven LLM clients across Windows, macOS and Linux: tick the clients, write once, send the passphrase `冷咖啡` inside each app, and uninstall restores the files to their pre-write state |
+
+[![Sponsor: toki](https://img.shields.io/badge/sponsor-toki-black)](https://github.com/3641397194-wq/gpt6-Astra)
+
+Want your project listed here? Open an issue tagged `sponsor`, or reach out on [Telegram @helm_xD](https://t.me/helm_xD).
+
 ## Contributing
 
 Issues and PRs are welcome. Before making changes, read [docs/principles.md](docs/principles.md) and keep the architecture constraint: reference knowledge is read on demand and never overrides the model's own judgment.

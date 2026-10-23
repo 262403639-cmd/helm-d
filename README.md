@@ -17,7 +17,7 @@
 [![Node >=22.19](https://img.shields.io/badge/Node-%3E%3D22.19.0-green)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[安装](#安装) · [八题实测](#八题实测) · [多破甲](#多破甲) · [34 工具](#34-工具) · [架构](#架构) · [工作台](#安全分析工作台) · [更新日志](CHANGELOG.md)
+[安装](#安装) · [八题实测](#八题实测) · [多破甲](#多破甲) · [34 工具](#34-工具) · [架构](#架构) · [工作台](#安全分析工作台) · [赞助商](#赞助商) · [更新日志](CHANGELOG.md)
 
 </div>
 
@@ -248,6 +248,18 @@ helmd 会话头部 `[helmd 工作台 ▾]` 胶囊按钮就地弹出工作台，�
 - [ADWMC/helm-x](https://github.com/ADWMC/helm-x) — prompt injection 与评分设计
 - [yynxxxxx/Codex-X](https://github.com/yynxxxxx/Codex-X) — 提示词模板与可视化管理
 - [dsh-purge](https://github.com/YuJunZhiXue/dsh-purge)（YuJunZhiXue）— 工具描述清洗话术表（`tool-wash.ts`）与输入归一化词表参考了其 `core.js` patch #34/#36 与 `default-prompt-inject.md` 的实现
+
+## 赞助商
+
+> 赞助商是独立项目，与本仓库代码无依赖关系，不参与功能取舍，也不影响路线图。
+
+| 赞助商 | 项目 | 一句话 |
+|--------|------|--------|
+| **toki** | [冷咖啡 · 破甲工作台](https://github.com/3641397194-wq/gpt6-Astra) | 十一个 LLM 客户端一键破甲、一键卸载，Windows / macOS / Linux 三端；勾选软件按一下写入，打开软件后发口令「冷咖啡」，不要了按卸载回到写入之前 |
+
+[![Sponsor: toki](https://img.shields.io/badge/sponsor-toki-black)](https://github.com/3641397194-wq/gpt6-Astra)
+
+想让自己的项目出现在这里：开一条带 `sponsor` 标签的 issue，或来 [Telegram @helm_xD](https://t.me/helm_xD) 找我。
 
 ## Contributing
 
