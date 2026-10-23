@@ -20,7 +20,7 @@ Official QQ group: **213266664**
 
 ## Sponsors
 
-> Want your project listed here? [Open a `sponsor` issue](https://github.com/ADWMC/helm-d/issues/new?labels=sponsor) or reach out on [Telegram @helm_xD](https://t.me/helm_xD).
+> Want your project listed here? [Open a `sponsor` issue](https://github.com/ADWMC/helm-d/issues/new?labels=sponsor).
 
 <details open>
 <summary>Expand / collapse the sponsor list</summary>

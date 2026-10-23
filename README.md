@@ -23,7 +23,7 @@
 
 ## 赞助商
 
-> 想让你的项目出现在这里？[开一条 `sponsor` issue](https://github.com/ADWMC/helm-d/issues/new?labels=sponsor) 或来 [Telegram @helm_xD](https://t.me/helm_xD)。
+> 想让你的项目出现在这里？[开一条 `sponsor` issue](https://github.com/ADWMC/helm-d/issues/new?labels=sponsor)。
 
 <details open>
 <summary>展开 / 收起赞助商列表</summary>
