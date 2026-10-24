@@ -7,7 +7,7 @@
 // This is deliberately not hook-scoped: any producer (tool, hook, preset) can
 // submit, and the same ledger answers "did the agent act on what we told it?".
 
-import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { appendFileSync, copyFileSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { ledgerDir } from './ledger.js'
 import { ASSISTANT_MESSAGE, eventCount, eventTexts, toolCalls, type ToolCall } from './session-log.js'

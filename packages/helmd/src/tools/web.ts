@@ -1,7 +1,6 @@
 import type { Context } from '@deepseek-ai/cordis'
 import { defineTool } from '@deepseek-ai/dsh-tools'
-import { join, resolve, sep } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { join, resolve } from 'node:path'
 import { packageRoot, readTextSeam, runSeam, assertWithinRoot  } from '../seam.js'
 
 const refRoot = join(packageRoot(), 'references', 'web')

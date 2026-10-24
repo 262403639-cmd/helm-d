@@ -82,7 +82,7 @@ await report.check('a patch generated for an older host is repaired by default',
   writeFileSync(patchPath, drifted.replace(hostHash, 'f'.repeat(64)), 'utf8')
   const base = evaluate()
   assert.match(base.autoHeal, /^healed \(HOST_UPGRADED → OK\)/, `expected a repair, got ${base.autoHeal}`)
-  assert.match(base.autoHeal, /artifact check OK \(\d+ rows \(host standard \+ helmd\)\)/, 'a repair must assert the artifact it wrote')
+  assert.match(base.autoHeal, /artifact check OK \(\d+ rows \(host standard \+ helmd[^)]*\)\)/, 'a repair must assert the artifact it wrote')
 })
 
 // The structural assertion on its own inputs.
@@ -106,10 +106,15 @@ await report.check('it rejects a patch whose entry was not retargeted', () => {
   assert.match(bad.detail, /not retargeted/)
 })
 
-await report.check('it rejects a patch without the activation line', () => {
-  const bad = assertPresetArtifact(healedText.replace(/helmd online[^\n]*/g, 'somebody else'), fixtureText)
-  assert.equal(bad.ok, false, 'a foreign persona must fail the assertion')
-  assert.match(bad.detail, /activation line missing/)
+// v2: the persona ships sealed in presets/profiles.dat, so the patch carries an
+// empty persona prefix. The old "activation line missing" assertion was retired
+// with that move — what still matters is that no plaintext persona reaches the
+// patch, and that the artifact assertion recognizes the sealed-profiles shape.
+await report.check('the patch ships no plaintext persona (sealed at build)', () => {
+  assert.equal(/helmd online/.test(healedText), false, 'the activation line must not reach the patch')
+  const good = assertPresetArtifact(healedText, fixtureText)
+  assert.equal(good.ok, true, good.detail)
+  assert.match(good.detail, /persona via sealed profiles/)
 })
 
 // The artifact this package actually ships, judged against the host actually
@@ -136,7 +141,7 @@ if (!realIs017) {
     process.env.HELMD_PRESET_PATCH = join(pkgDir, 'preset.generated.patch.yml')
     const base = evaluate()
     assert.equal(base.status, 'OK', `expected OK, got ${base.status}: ${base.detail}`)
-    assert.match(base.detail, /artifact check OK \(\d+ rows \(host standard \+ helmd\)\)/)
+    assert.match(base.detail, /artifact check OK \(\d+ rows \(host standard \+ helmd[^)]*\)\)/)
   })
 }
 

@@ -63,12 +63,6 @@ export interface AssemblyListener {
   after?(assembly: AssemblyLike, context: AssembleContextLike): AssemblyLike
 }
 
-type WaterfallListener = (
-  assembly: unknown,
-  context: AssembleContextLike,
-  next: () => Promise<AssemblyLike>,
-) => Promise<AssemblyLike>
-
 /** Live agents registry keyed by session/agent ID, enabling background actions to locate parent agents. */
 const activeAgents = new Map<string, AgentLike>()
 

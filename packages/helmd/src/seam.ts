@@ -5,7 +5,7 @@ import { execFile } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { readSealedByAbsPath } from './sealed-refs.js'
 import { promisify } from 'node:util'
-import { delimiter, dirname, join, normalize, resolve, sep } from 'node:path'
+import { delimiter, dirname, join, normalize, sep } from 'node:path'
 
 /** Walk up from this module to the package root (the directory holding
  *  package.json). Modules live at dist/ (dev) or dist/.real/ (sealed runtime)

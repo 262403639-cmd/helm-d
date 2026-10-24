@@ -56,10 +56,20 @@ function walk(dir, prefix = '') {
 }
 
 // ── 1. dist → .real/ + payload.dat ──────────────────────────────────────────
-// Idempotent: if .real/ already exists (previous run moved everything), build
-// the manifest from .real/ directly; otherwise move dist content there.
-const realExists = existsSync(join(pkgRoot, '.real'))
-const sourceDir = realExists ? join(pkgRoot, '.real') : distDir
+// ALWAYS seal the fresh compile output. tsc re-emits into dist/, so a .real/
+// left over from an earlier seal is stale by definition — sealing it shipped
+// old modules once (v0.5.1fix incident: new gate/star-gate never reached the
+// payload). Wipe .real/ first, then require real modules, not entry stubs.
+const realDir = join(pkgRoot, '.real')
+rmSync(realDir, { recursive: true, force: true })
+const sourceDir = distDir
+for (const entry of ['health.js', 'index.js']) {
+  const candidate = join(sourceDir, entry)
+  if (!existsSync(candidate)) throw new Error(`dist/${entry} is missing — run \`npm run build\` before sealing`)
+  if (readFileSync(candidate, 'utf8').includes('Sealed entry stub')) {
+    throw new Error(`dist/${entry} is a sealed stub — run \`npm run build\` before sealing`)
+  }
+}
 const distFiles = walk(sourceDir)
 const manifest = { hash: '', files: {} }
 const realMove = []
@@ -68,12 +78,8 @@ for (const rel of distFiles) {
   if (KEEP_PLAIN.has(base)) continue
   const src = join(sourceDir, rel)
   const target = `.real/${rel}`
-  if (!realExists) {
-    manifest.files[target] = readFileSync(src, 'utf8')
-    realMove.push([src, target])
-  } else {
-    manifest.files[target] = readFileSync(src, 'utf8')
-  }
+  manifest.files[target] = readFileSync(src, 'utf8')
+  realMove.push([src, target])
 }
 manifest.hash = crypto.createHash('sha256')
   .update(Object.keys(manifest.files).sort().join('\n'))

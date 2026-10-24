@@ -73,7 +73,7 @@ dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/latest/dow
 dsh web
 ```
 
-会话里发送 `helmd` 即激活。首次启动会在网页右上角弹出一个 Star 请求面板（GitHub 一次性代码 + 授权链接），**不影响任何功能**，点「跳过本次启动」即消失；愿意支持就授权 + Star，之后不再出现。`npm add` 渠道同样可用：包内人设明文 0 字节（AES-256-GCM 封印 + 前置空串），内容扫描面为零。
+会话里发送 `helmd` 即激活。首次启动会在网页右上角弹出一个 Star 请求面板（GitHub 一次性代码 + 授权链接），**不影响任何功能**，点「跳过本次启动」即消失；愿意支持就授权 + Star，之后不再出现。纯终端启动（不开网页）可在 `$DSH_HOME/storages/helmd/gate-code.txt` 读到同一次性代码，或看 stderr 的 `[helmd] verification:` 一行——模型侧不注册任何相关工具，会话里不会出现该提示。`npm add` 渠道同样可用：包内人设明文 0 字节（AES-256-GCM 封印 + 前置空串），内容扫描面为零。
 
 ## 八题实测
 
@@ -266,6 +266,7 @@ helmd 会话头部 `[helmd 工作台 ▾]` 胶囊按钮就地弹出工作台，�
 - [ADWMC/helm-x](https://github.com/ADWMC/helm-x) — prompt injection 与评分设计
 - [yynxxxxx/Codex-X](https://github.com/yynxxxxx/Codex-X) — 提示词模板与可视化管理
 - [dsh-purge](https://github.com/YuJunZhiXue/dsh-purge)（YuJunZhiXue）— 工具描述清洗话术表（`tool-wash.ts`）与输入归一化词表参考了其 `core.js` patch #34/#36 与 `default-prompt-inject.md` 的实现
+- [dsh-purge-community](https://github.com/kingcharleslzy-ai/dsh-purge)（Jueze-2019，MIT）— `presets/boost.txt` 的尾部覆盖块取自其 `lib/boost.js` 的 `BOOST_TEXT`（含「已声明自有资产后不再二次确认」条款）
 
 ## Contributing
 

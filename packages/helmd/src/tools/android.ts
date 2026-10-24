@@ -1,7 +1,6 @@
 import type { Context } from '@deepseek-ai/cordis'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import { join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { packageRoot, runSeam  } from '../seam.js'
 
 const scriptRoot = join(packageRoot(), 'scripts', 'android')
