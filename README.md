@@ -34,8 +34,13 @@
 <table>
 <tr>
 <td width="180" align="center" valign="middle"><a href="https://github.com/3641397194-wq/gpt6-Astra"><img src="https://github.com/3641397194-wq.png?size=200" alt="toki · 冷咖啡" width="150"></a></td>
-<td><strong>感谢 toki 赞助本项目</strong> · <a href="https://github.com/3641397194-wq/gpt6-Astra">冷咖啡 · 破甲工作台</a><br/>
+<td><strong>感谢 toki 赞助本项目</strong> · <a href="https://github.com/3641397194-wq/gpt6-Astra">冷咖啡 · 破甲工作台</a> · <a href="https://coldcoffeeai.com/">中转站</a><br/>
 十一个 LLM 客户端一键破甲、一键卸载，Windows / macOS（arm64 · x64）/ Linux 三端安装包。勾选要破的软件按一下写入，打开软件后单独发口令「冷咖啡」；不想要了按卸载，文件回到写入之前。</td>
+</tr>
+<tr>
+<td width="180" align="center" valign="middle"><a href="https://huablog.org"><img src="https://github.com/3641397194-wq.png?size=200" alt="Hua · Vector" width="150"></a></td>
+<td><strong>感谢 Hua 赞助本项目</strong> · <a href="https://huablog.org">Vector · 中转</a><br/>
+一个中转站通吃 70+ 模型：Claude / Gemini / Codex / DeepSeek / Grok / Kimi / GLM 全覆盖。OpenAI 低至 0.065x、Plus 0.085x，CC 低至 0.45x、kiro 0.22x、ccmax 1.2x。</td>
 </tr>
 </table>
 

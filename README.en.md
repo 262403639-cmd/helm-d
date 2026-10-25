@@ -31,8 +31,13 @@ Official QQ group: **213266664**
 <table>
 <tr>
 <td width="180" align="center" valign="middle"><a href="https://github.com/3641397194-wq/gpt6-Astra"><img src="https://github.com/3641397194-wq.png?size=200" alt="toki · ColdCoffee" width="150"></a></td>
-<td><strong>Thanks to toki for sponsoring this project</strong> · <a href="https://github.com/3641397194-wq/gpt6-Astra">ColdCoffee · Break-Open Workbench</a><br/>
+<td><strong>Thanks to toki for sponsoring this project</strong> · <a href="https://github.com/3641397194-wq/gpt6-Astra">ColdCoffee · Break-Open Workbench</a> · <a href="https://coldcoffeeai.com/">Relay</a><br/>
 One-click break-open and one-click uninstall for eleven LLM clients, with installers for Windows, macOS (arm64 · x64) and Linux. Tick the clients, write once, then send the passphrase <code>冷咖啡</code> inside each app; uninstall restores the files to their pre-write state.</td>
+</tr>
+<tr>
+<td width="180" align="center" valign="middle"><a href="https://huablog.org"><img src="https://github.com/3641397194-wq.png?size=200" alt="Hua · Vector" width="150"></a></td>
+<td><strong>Thanks to Hua for sponsoring this project</strong> · <a href="https://huablog.org">Vector · Relay</a><br/>
+One relay for 70+ models — Claude / Gemini / Codex / DeepSeek / Grok / Kimi / GLM. OpenAI from 0.065x, Plus 0.085x, CC from 0.45x, kiro 0.22x, ccmax 1.2x.</td>
 </tr>
 </table>
 
