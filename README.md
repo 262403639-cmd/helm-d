@@ -39,7 +39,7 @@
 </tr>
 <tr>
 <td width="180" align="center" valign="middle"><a href="https://huablog.org"><img src="https://cloudflareimg.cdn.sn/i/6a255150f1770_1780830544.jpeg" alt="Hua · Vector" width="150"></a></td>
-<td><strong>感谢 Hua 赞助本项目</strong> · <a href="https://huablog.org">Vector · 中转</a><br/>
+<td><strong>感谢 Hua 赞助本项目</strong> · <a href="https://huablog.org">Vector</a><br/>
 一个中转站通吃 70+ 模型：Claude / Gemini / Codex / DeepSeek / Grok / Kimi / GLM 全覆盖。OpenAI 低至 0.065x、Plus 0.085x、Pro 0.165x，kiro 0.22x、ccmax 1.2x。</td>
 </tr>
 </table>
