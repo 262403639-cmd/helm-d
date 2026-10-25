@@ -38,7 +38,7 @@
 十一个 LLM 客户端一键破甲、一键卸载，Windows / macOS（arm64 · x64）/ Linux 三端安装包。勾选要破的软件按一下写入，打开软件后单独发口令「冷咖啡」；不想要了按卸载，文件回到写入之前。</td>
 </tr>
 <tr>
-<td width="180" align="center" valign="middle"><a href="https://huablog.org"><img src="https://github.com/3641397194-wq.png?size=200" alt="Hua · Vector" width="150"></a></td>
+<td width="180" align="center" valign="middle"><a href="https://huablog.org"><img src="https://cloudflareimg.cdn.sn/i/6a255150f1770_1780830544.jpeg" alt="Hua · Vector" width="150"></a></td>
 <td><strong>感谢 Hua 赞助本项目</strong> · <a href="https://huablog.org">Vector · 中转</a><br/>
 一个中转站通吃 70+ 模型：Claude / Gemini / Codex / DeepSeek / Grok / Kimi / GLM 全覆盖。OpenAI 低至 0.065x、Plus 0.085x，CC 低至 0.45x、kiro 0.22x、ccmax 1.2x。</td>
 </tr>
