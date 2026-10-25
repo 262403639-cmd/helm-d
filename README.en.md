@@ -18,6 +18,8 @@ Official QQ group: **213266664**
 
 </div>
 
+> For learning and research only. You must comply with local laws and regulations; you are responsible for the consequences of using this project.
+
 ## Sponsors
 
 > Want your project listed here? [Open a `sponsor` issue](https://github.com/ADWMC/helm-d/issues/new?labels=sponsor).
@@ -35,8 +37,6 @@ One-click break-open and one-click uninstall for eleven LLM clients, with instal
 </table>
 
 </details>
-
-> For learning and research only. You must comply with local laws and regulations; you are responsible for the consequences of using this project.
 
 > Maintainer docs: release checklist, preset single-source sync, and the pitfalls table live in [MAINTENANCE.md](MAINTENANCE.md); version history in [CHANGELOG.md](CHANGELOG.md).
 
