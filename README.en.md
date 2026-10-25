@@ -37,7 +37,7 @@ One-click break-open and one-click uninstall for eleven LLM clients, with instal
 <tr>
 <td width="180" align="center" valign="middle"><a href="https://huablog.org"><img src="https://cloudflareimg.cdn.sn/i/6a255150f1770_1780830544.jpeg" alt="Hua · Vector" width="150"></a></td>
 <td><strong>Thanks to Hua for sponsoring this project</strong> · <a href="https://huablog.org">Vector · Relay</a><br/>
-One relay for 70+ models — Claude / Gemini / Codex / DeepSeek / Grok / Kimi / GLM. OpenAI from 0.065x, Plus 0.085x, CC from 0.45x, kiro 0.22x, ccmax 1.2x.</td>
+One relay for 70+ models — Claude / Gemini / Codex / DeepSeek / Grok / Kimi / GLM. OpenAI from 0.065x, Plus 0.085x, Pro 0.165x, kiro 0.22x, ccmax 1.2x.</td>
 </tr>
 </table>
 
