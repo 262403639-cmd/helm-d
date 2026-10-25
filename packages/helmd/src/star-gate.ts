@@ -169,7 +169,9 @@ async function requestText(
   const secure = target.protocol === 'https:'
   const port = Number(target.port || (secure ? 443 : 80))
   const path = `${target.pathname}${target.search}`
-  const headers: Record<string, string> = { host: target.host, ...init.headers }
+  // GitHub REST API rejects requests without a User-Agent (403). Native fetch
+  // added one implicitly; http.request does not, so send it explicitly here.
+  const headers: Record<string, string> = { 'user-agent': 'helm-d', host: target.host, ...init.headers }
   const proxy = resolveProxy(target.hostname)
   let agent: Agent | undefined
   if (proxy !== undefined) {

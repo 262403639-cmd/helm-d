@@ -9,6 +9,7 @@
 - **会话内不再出现 star**：删除 `helmd_unlock` 工具。该工具名撞激活词 `helmd`，模型会把激活输入读成“查 star 门”，解锁后也仍常驻工具清单；现在插件不再注册任何与 star 相关的工具，工具总数回到 34
 - **CLI 一次性代码通道**：设备流代码写入 `$DSH_HOME/storages/helmd/gate-code.txt` 并打一行 `[helmd] verification:` 到 stderr，星标/跳过/超时即清除；网页弹窗不变
 - **代理传输**：GitHub 通信不再用原生 `fetch`（不读代理，代理环境下 device flow 必超时、面板卡在“生成中…”）。改为自建 CONNECT 隧道，按 `HTTPS_PROXY`/`ALL_PROXY`/`NO_PROXY` → Windows 注册表系统代理 → 直连 的顺序解析，20s 超时，支持 Basic 代理认证
+- **代理传输补 User-Agent**（覆盖发布修正）：`http.request` 不像 `fetch` 会自带 UA，GitHub REST API 对无 UA 请求一律 403，表现为授权后 star 校验固定失败；`requestText` 现统一发送 `user-agent: helm-d`
 - **封包链路修复**：`build-sealed.mjs` 过去在 `.real/` 已存在时从它封包，会打进上一次的旧模块（本次即因此首次打出的包仍含旧 gate）；现在先清 `.real/`，始终封新鲜 `dist/`，并在入口是 stub 时直接报错
 - **死代码清理**：`PERSONA_START_MARKER`/`PERSONA_END_MARKER`、`pluginCtx`、`profileName`、`WaterfallListener` 及 11 处未用导入；`--noUnusedLocals --noUnusedParameters` 归零
 - **检查跟进 v2 契约**：preset-heal 的 artifact 断言接受 `persona via sealed profiles`，退役已随封印人设作废的 activation-line 断言（`pnpm test:checks` 14 PASS）
