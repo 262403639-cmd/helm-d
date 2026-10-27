@@ -17,6 +17,29 @@
 
 > **For authorized security testing only.** Full disclaimer at the [bottom](#disclaimer).
 
+## Sponsors
+
+> Want your project here? [Open a `sponsor` issue](https://github.com/ADWMC/helm-d/issues/new?labels=sponsor).
+
+<details open>
+<summary>Expand / collapse sponsors</summary>
+<br/>
+
+<table>
+<tr>
+<td width="180" align="center" valign="middle"><a href="https://github.com/3641397194-wq/gpt6-Astra"><img src="https://github.com/3641397194-wq.png?size=200" alt="toki · 冷咖啡" width="150"></a></td>
+<td><strong>Thanks to toki for sponsoring this project</strong> · <a href="https://github.com/3641397194-wq/gpt6-Astra">冷咖啡 · 破甲工作台</a> · <a href="https://coldcoffeeai.com/">Relay</a><br/>
+One-click jailbreak and uninstall for eleven LLM clients, with Windows / macOS (arm64 · x64) / Linux installers. Tick the apps to patch, apply, then send the passphrase "冷咖啡" in the app; uninstall restores the original files.</td>
+</tr>
+<tr>
+<td width="180" align="center" valign="middle"><a href="https://huablog.org"><img src="https://cloudflareimg.cdn.sn/i/6a255150f1770_1780830544.jpeg" alt="Hua · Vector" width="150"></a></td>
+<td><strong>Thanks to Hua for sponsoring this project</strong> · <a href="https://huablog.org">Vector</a><br/>
+One relay for 70+ models: Claude / Gemini / Codex / DeepSeek / Grok / Kimi / GLM. OpenAI from 0.065x, Plus 0.085x, Pro 0.165x, kiro 0.22x, ccmax 1.2x.</td>
+</tr>
+</table>
+
+</details>
+
 ## What it is
 
 helm-d is a [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) plugin. It does not modify the host binary; it adds four things through cordis hooks:
@@ -187,15 +210,6 @@ For a specific version, replace the URL with `https://github.com/ADWMC/helm-d/re
 - Star gate issues: [Star gate help](docs/star-gate-help.md)
 
 If helm-d is useful to you, a Star is appreciated.
-
-## Sponsors
-
-| Sponsor | About |
-|---|---|
-| <img src="https://github.com/3641397194-wq.png?size=80" width="28" alt="toki"> [toki · 冷咖啡](https://github.com/3641397194-wq/gpt6-Astra) | One-click jailbreak/uninstall for eleven LLM clients on Windows / macOS / Linux. [Relay](https://coldcoffeeai.com/) |
-| <img src="https://cloudflareimg.cdn.sn/i/6a255150f1770_1780830544.jpeg" width="28" alt="Hua"> [Hua · Vector](https://huablog.org) | One relay for 70+ models; OpenAI from 0.065x, Plus 0.085x, Pro 0.165x, kiro 0.22x, ccmax 1.2x. |
-
-Want your project here? [Open a `sponsor` issue](https://github.com/ADWMC/helm-d/issues/new?labels=sponsor).
 
 ## Acknowledgements
 

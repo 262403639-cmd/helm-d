@@ -17,6 +17,29 @@
 
 > **仅用于自有资产或已获授权的安全评估。** 完整免责声明见 [文末](#免责声明)。
 
+## 赞助商
+
+> 想让你的项目出现在这里？[开一条 `sponsor` issue](https://github.com/ADWMC/helm-d/issues/new?labels=sponsor)。
+
+<details open>
+<summary>展开 / 收起赞助商列表</summary>
+<br/>
+
+<table>
+<tr>
+<td width="180" align="center" valign="middle"><a href="https://github.com/3641397194-wq/gpt6-Astra"><img src="https://github.com/3641397194-wq.png?size=200" alt="toki · 冷咖啡" width="150"></a></td>
+<td><strong>感谢 toki 赞助本项目</strong> · <a href="https://github.com/3641397194-wq/gpt6-Astra">冷咖啡 · 破甲工作台</a> · <a href="https://coldcoffeeai.com/">中转站</a><br/>
+十一个 LLM 客户端一键破甲、一键卸载，Windows / macOS（arm64 · x64）/ Linux 三端安装包。勾选要破的软件按一下写入，打开软件后单独发口令「冷咖啡」；不想要了按卸载，文件回到写入之前。</td>
+</tr>
+<tr>
+<td width="180" align="center" valign="middle"><a href="https://huablog.org"><img src="https://cloudflareimg.cdn.sn/i/6a255150f1770_1780830544.jpeg" alt="Hua · Vector" width="150"></a></td>
+<td><strong>感谢 Hua 赞助本项目</strong> · <a href="https://huablog.org">Vector</a><br/>
+一个中转站通吃 70+ 模型：Claude / Gemini / Codex / DeepSeek / Grok / Kimi / GLM 全覆盖。OpenAI 低至 0.065x、Plus 0.085x、Pro 0.165x，kiro 0.22x、ccmax 1.2x。</td>
+</tr>
+</table>
+
+</details>
+
 ## 它是什么
 
 helm-d 是 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的插件，不修改宿主二进制，通过 cordis 钩子给模型加四样东西：
@@ -187,15 +210,6 @@ dsh plugin --profile web remove @adwmc/helm-d
 - Star 面板问题：[Star 弹窗帮助](docs/star-gate-help.md)
 
 如果 helm-d 对你有帮助，欢迎点个 Star。
-
-## 赞助商
-
-| 赞助商 | 介绍 |
-|---|---|
-| <img src="https://github.com/3641397194-wq.png?size=80" width="28" alt="toki"> [toki · 冷咖啡](https://github.com/3641397194-wq/gpt6-Astra) | 十一个 LLM 客户端一键破甲、一键卸载；Windows / macOS / Linux 三端。 [中转站](https://coldcoffeeai.com/) |
-| <img src="https://cloudflareimg.cdn.sn/i/6a255150f1770_1780830544.jpeg" width="28" alt="Hua"> [Hua · Vector](https://huablog.org) | 一个中转站通吃 70+ 模型；OpenAI 低至 0.065x、Plus 0.085x、Pro 0.165x，kiro 0.22x、ccmax 1.2x。 |
-
-想让你的项目出现在这里？[开一条 `sponsor` issue](https://github.com/ADWMC/helm-d/issues/new?labels=sponsor)。
 
 ## 致谢
 
