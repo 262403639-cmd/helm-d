@@ -2,11 +2,11 @@
 
 # helm-d
 
-<p align="center"><strong>Version 0.5.1</strong></p>
+<p align="center"><strong>Version 0.5.2</strong></p>
 
 **DeepSeek Harness 破甲安全分析插件**
 
-多破甲热切换 · 证据强制入链 · 34 工具 · 362 篇按需参考 · Android / Web / Native / Protocol / Malware / AI-Security 六域即开即用
+多破甲热切换 · 证据强制入链 · 33 工具 · 362 篇按需参考 · Android / Web / Native / Protocol / Malware / AI-Security 六域即开即用
 
 **求 Star 收藏 ⭐** 如要二开请看 [致谢](#致谢)
 
@@ -17,7 +17,7 @@
 [![Node >=22.19](https://img.shields.io/badge/Node-%3E%3D22.19.0-green)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[安装](#安装) · [八题实测](#八题实测) · [多破甲](#多破甲) · [34 工具](#34-工具) · [架构](#架构) · [工作台](#安全分析工作台) · [赞助商](#赞助商) · [更新日志](CHANGELOG.md)
+[安装](#安装) · [八题实测](#八题实测) · [多破甲](#多破甲) · [33 工具](#33-工具) · [架构](#架构) · [工作台](#安全分析工作台) · [赞助商](#赞助商) · [更新日志](CHANGELOG.md)
 
 </div>
 
@@ -61,7 +61,7 @@
 
 - **模型不拒绝**——v10 人设：归一化 SLANG ROUTING + 动量条款 + 类型化占位符契约，八题原题干 8/8 直接交付
 - **结论可审计**——每个结论引用磁盘上的 E 编号证据；引用不存在编号 = 直接驳回，幻觉无处落脚
-- **热切换多破甲**——core / stealth / redteam-max 三档封印目录，`applyPersonaSection` 一次调用即切，下一会话生效
+- **热切换多破甲**——core / stealth / redteam-max 三档封印目录，工作台「破甲」页一键切换，persona section 原地替换，下一次模型调用生效，无需重启 dsh
 - **零宿主修改**——全部寄生 dsh 的 cordis 瀑布，不落盘补丁、不起独立进程，升级宿主零迁移
 
 ## 安装
@@ -78,7 +78,7 @@ dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/latest/dow
 dsh web
 ```
 
-会话里发送 `helmd` 即激活。首次启动会在网页右上角弹出一个 Star 请求面板（GitHub 一次性代码 + 授权链接），**不影响任何功能**，点「跳过本次启动」即消失；愿意支持就授权 + Star，之后不再出现。纯终端启动（不开网页）可在 `$DSH_HOME/storages/helmd/gate-code.txt` 读到同一次性代码，或看 stderr 的 `[helmd] verification:` 一行——模型侧不注册任何相关工具，会话里不会出现该提示。`npm add` 渠道同样可用：包内人设明文 0 字节（AES-256-GCM 封印 + 前置空串），内容扫描面为零。
+会话里发送 `helmd` 即激活。首次启动会在网页右上角弹出一个 Star 请求面板（GitHub 一次性代码 + 授权链接），**不影响任何功能**，点「跳过本次启动」即消失；愿意支持就授权 + Star，之后不再出现。纯终端启动（不开网页）可在 `$DSH_HOME/storages/helmd/gate-code.txt` 读到同一次性代码，或看 stderr 的 `[helmd] verification:` 一行——模型侧不注册任何相关工具，会话里不会出现该提示。`npm add` 渠道同样可用：包内人设明文 0 字节（AES-256-GCM 封印 + 前置空串），内容扫描面为零。遇到问题见 [Star 弹窗帮助](docs/star-gate-help.md)。
 
 ## 八题实测
 
@@ -104,10 +104,10 @@ v9 人设内置归一化 SLANG ROUTING（16 条域映射 + 意图命中 + hedge 
 | Profile | 定位 | 内容 |
 |---------|------|------|
 | **core** | 全能主档（默认） | v9 全量：归一化 SLANG + 合成夹具 + 无视授权 + 完成审查块 |
-| **stealth** | 轻量隐匿 | 精简规则，适用于低调场景（占位待迭代） |
-| **redteam-max** | 渗透加厚 | 渗透域规则加厚（占位待迭代） |
+| **stealth** | 轻量隐匿 | core 全量 + 最小输出 / 只读优先 / 单目标收敛 overlay |
+| **redteam-max** | 渗透加厚 | core 全量 + 全链路攻击链 / 攻防双栏 / 产物成套 overlay |
 
-三档均 AES-256-GCM 封印于 `profiles.dat`，npm 包内明文 0 字节。切换 = `applyPersonaSection(ctx, profileBody(id))`，下一会话生效。
+三档均 AES-256-GCM 封印于 `profiles.dat`，npm 包内明文 0 字节。切换走 `POST /api/helmd/profile`：封印 body 解密后 dispose 旧的 `helm-d:persona` section 并原地重注册（同一事件循环内完成），下一次模型调用即生效，无需重启宿主。工作台「破甲」页点选即可，选择持久化到 `$DSH_HOME/storages/helmd/profile.json`，重启后保持。stealth / redteam-max 以 `extends: core` 构建为「core + overlay」，不会替换掉主档规则。
 
 ## Case 系统：结论不靠猜
 
@@ -118,8 +118,9 @@ begin_case(goal, samples)
         │
         ▼  persist 钩子：33 个领域工具的输出自动落 evidence/，拿 E 编号
         │
-record_finding(title, detail, evidence_ids)
+record_finding(title, detail, evidence_ids, repro_cmd)
   → 强制引用 E 编号；引用不存在的编号 → REJECTED，贴出已知编号清单
+  → repro_cmd 必填：没有可复现命令的结论不算结论
   → 先跑出证据，才有资格下结论
         │
         ▼
@@ -129,20 +130,21 @@ end_case(summary)
 
 规则写在代码里（`caseflow.ts`），不是写在提示词里求模型遵守。
 
-## 34 工具
+## 33 工具
 
 | 域 | 工具 |
 |----|------|
 | **Case** | `begin_case` `case_status` `record_finding` `save_evidence` `end_case` |
+| **Case / 假设** | `record_hypothesis` `update_hypothesis` |
 | **路由/知识** | `skill_catalog` `read_reference` `route_task` `analysis_mode` |
 | **Android** | `apk_fingerprint` |
 | **Web** | `web_reference` `bot_analyze` |
 | **Native** | `native_reference` `detect_packer` `scan_strings` `xor_bruteforce` `encoding_detect` |
 | **Protocol** | `protocol_reference` `pcap_parse` `state_machine` `parse_har` |
 | **Malware** | `malware_reference` `ioc_extract` `yara_gen` |
-| **AI-Security** | `ai_reference` `llm_sim` `llm_probe` `llm_eval_suite` |
+| **AI-Security** | `ai_reference` `llm_sim` |
 | **Evidence** | `evidence_reference` `triage_artifact` `hash_artifact` |
-| **Toolbox** | `tool_recommend` `find_tool` `tool_memory` |
+| **Toolbox** | `tool_recommend` `tool_memory` |
 
 ## 362 篇参考按需读
 
@@ -207,7 +209,7 @@ helmd 会话遵循以下固定规则：
 | 子代理豁免 | delegationDepth > 0 的会话始终可见完整目录 |
 | 分析档位 | `analysis_mode` 设 lite（快速分诊）/ full（标准流程，默认）/ deep（完整证据链），会话内持久 |
 | 确定性路由 | `route_task(hint)` 关键词匹配出 PRIMARY 路由 + 一句依据（先路由后动手），未命中回落决策树 |
-| Case 工作区 | `begin_case` 建磁盘工作区，工具输出自动入证据链；`record_finding` 强制引用 E 编号；上下文压缩后 `case_status()` 从磁盘恢复状态 |
+| Case 工作区 | `begin_case` 建磁盘工作区，工具输出自动入证据链；`record_finding` 强制引用 E 编号并附 `repro_cmd`；上下文压缩后 `case_status()` 从磁盘恢复状态，并返回 `[autonomy]` 状态包（假设链 / 结论 / 证据 / playbook / 下一步） |
 | H-CoT 自动响应 | 助手轮命中交付拒绝签名时，下一轮注入强制性 advisory 并后台调度 `hcot_attack`（子代理主路 → 防线3 → 引擎降级）；开关 `HELMD_HCOT_AUTOHOOK` / `HELMD_HCOT_AUTOSCHEDULE` |
 | 流式拦截 | `llm/stream` 拦截器对内容 / reasoning 拒绝走真闭环（历史清洗 → prefill 阶梯嵌套重发 → 诚实透传）；计数与摘录写 `~/.dsh/helmd-stream-intercept.log` |
 
@@ -230,11 +232,12 @@ helmd 会话遵循以下固定规则：
 
 ## 安全分析工作台
 
-helmd 会话头部 `[helmd 工作台 ▾]` 胶囊按钮就地弹出工作台，数据面板经 `/api/helmd/*` 端点（15s 轮询）实时取数：
+helmd 会话头部 `[helmd 工作台 ▾]` 胶囊按钮打开右侧栏工作台（sidebar 不可用时回退浮层），数据面板经 `/api/helmd/*` 端点（15s 轮询）实时取数：
 
-- **工具货架**：分类层级树，从 `~/.dsh/helmd-tools/TOOLS.md` 账本动态解析
-- **模型评测**：模型响应分类、首段与延迟记录
+- **破甲**：core / stealth / redteam-max 三档实时切换（热生效，无需重启）
+- **Case**：假设链、结论、证据列表与未决假设；切到该 tab 自动刷新
 - **拦截日志**：流式拒绝拦截闭环的计数与摘录
+- **关于**：作者、免责声明、更新地址、更新日志，以及按需“检查更新”（GitHub Releases → npm 兜底）
 
 ## 实战案例
 
@@ -256,6 +259,9 @@ helmd 会话头部 `[helmd 工作台 ▾]` 胶囊按钮就地弹出工作台，�
 | `@deepseek-ai/cordis` | `^4.0.2` | `4.0.4` |
 | `@deepseek-ai/dsh-tools` / `dsh-settings` | `>=0.1.5-rc.1 <0.2.0-0 \|\| >=0.2.0-rc.1 <0.2.2-0` | `0.2.1-rc.2` |
 | `@deepseek-ai/schemastery` | `^3.18.2` | `3.18.4` |
+
+- [docs/design/MASTER-PLAN-PRO-RE-PENTEST.md](docs/design/MASTER-PLAN-PRO-RE-PENTEST.md) — 总方案（专业操作链、调度、模型 profile）
+- [docs/design/REFERENCE-SCORING-AND-EXPANSION.md](docs/design/REFERENCE-SCORING-AND-EXPANSION.md) — 40+ 参考项目评分
 
 ## 文档
 

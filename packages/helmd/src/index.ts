@@ -6,7 +6,6 @@ import { registerLlmStreamHook } from './llm-stream-hook.js'
 import { applyPersistenceWrap } from './persist.js'
 import { registerRouterTools } from './router.js'
 import { registerCaseflowTools } from './tools/caseflow.js'
-import { registerToolDiscoveryTools } from './tools/tool-discovery.js'
 import { registerAndroidTools } from './tools/android.js'
 import { registerWebTools } from './tools/web.js'
 import { registerNativeTools } from './tools/native.js'
@@ -22,6 +21,11 @@ import { registerGate } from './gate.js'
 export const name = 'helmd'
 export const inject = ['tools', 'systemPrompt']
 
+/** The host's native shell tool on this platform. Selecting one (instead of
+ *  listing both) keeps the bootstrap anchor unambiguous when a machine has
+ *  both bash and pwsh installed — on Linux, `win32` never enters the list. */
+const NATIVE_SHELL = process.platform === 'win32' ? 'pwsh' : 'bash'
+
 export function apply(ctx: Context): void {
   // Description wash FIRST: normalize any "denial is final" tool wording before
   // any domain tool registers (defensive layer — current helmd descriptions are clean).
@@ -34,9 +38,9 @@ export function apply(ctx: Context): void {
     // Registered before everything else — it needs systemPrompt only.
     registerIcaContext(ctx)
 
-    // Bootstrap filter: first request only exposes shell + read
+    // Bootstrap filter: first request only exposes the platform shell + read
     applyBootstrapFilter(ctx, {
-      shellTools: ['bash', 'pwsh'],
+      shellTools: [NATIVE_SHELL],
       commonTools: ['read'],
       promoteOn: 'either',
     })
@@ -54,8 +58,6 @@ export function apply(ctx: Context): void {
     // Case lifecycle: begin_case / case_status / record_finding / save_evidence / end_case
     registerCaseflowTools(ctx)
 
-    // External tool discovery: find_tool (GitHub + local shelf)
-    registerToolDiscoveryTools(ctx)
 
     // Domain tools
     registerAndroidTools(ctx)

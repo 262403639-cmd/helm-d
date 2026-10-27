@@ -8,9 +8,8 @@ Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
  *    native interactive capsule action button (Pill Action Button) via slot
  *    shadowing (`priority: -1`). Smoothly opens the security workbench in the
  *    right sidebar without navigating away, creating empty sessions, or reloading.
- * 2. Right sidebar workbench: Registers the 'eval' tab carrying model evaluation controls,
- *    the 19+ reverse engineering tool matrix shelf, and stream audit logs.
- * 3. Settings health card: Read-only folded PluginCard under Settings -> Plugins.
+ * 2. Right sidebar workbench: Three-tab panel (armor profile / case / intercept)
+ *    rendered from official slots and DSH theme tokens.
  *
  * Strictly adheres to DSH design tokens (--dsw-alias-*) and zero emojis.
  */
@@ -18,26 +17,6 @@ const React = require("react");
 const h = React.createElement;
 
 const NS = "helmd";
-
-const STATUS_TONE = {
-	OK: "var(--dsw-alias-state-success-primary, #1b7f4d)",
-	HOST_UPGRADED: "var(--dsw-alias-state-warn-label, #b45309)",
-	STALE: "var(--dsw-alias-state-error-primary, #b91c1c)",
-	LEGACY_PRESET: "var(--dsw-alias-state-business-primary, #6d28d9)",
-	NOT_GENERATED: "var(--dsw-alias-label-tertiary, #64748b)",
-	UNKNOWN: "var(--dsw-alias-label-tertiary, #64748b)",
-};
-
-const STATUS_LABEL = {
-	OK: "健康 Healthy",
-	HOST_UPGRADED: "宿主已升级 Host upgraded",
-	STALE: "内容漂移 Content drift",
-	LEGACY_PRESET: "旧版产物 Legacy preset",
-	NOT_GENERATED: "未生成 Not generated",
-	UNKNOWN: "无法评估 Unknown",
-};
-
-const MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace";
 
 function ChevronIcon(props) {
 	const open = props && props.open;
@@ -47,7 +26,7 @@ function ChevronIcon(props) {
 		"aria-hidden": "true",
 		style: {
 			flex: "none",
-			color: "var(--dsw-alias-label-tertiary, #888)",
+			color: "var(--dsw-alias-label-tertiary)",
 			transition: "transform .16s ease",
 			transform: open ? "rotate(180deg)" : "rotate(0deg)",
 		},
@@ -63,7 +42,7 @@ function CloseIcon(props) {
 		"aria-hidden": "true",
 		style: {
 			flex: "none",
-			color: "var(--dsw-alias-label-tertiary, #888)",
+			color: "var(--dsw-alias-label-tertiary)",
 		},
 	},
 		h("path", { d: "M3.5 3.5l7 7M10.5 3.5l-7 7" }),
@@ -102,180 +81,13 @@ function IconAgentPreset(props) {
 	);
 }
 
-function row(label, value) {
-	return [
-		h("dt", {
-			key: label + "-t",
-			style: { color: "var(--dsw-alias-label-tertiary, #888)", whiteSpace: "nowrap" },
-		}, label),
-		h("dd", {
-			key: label + "-d",
-			style: {
-				margin: 0,
-				fontFamily: MONO,
-				fontSize: 12,
-				wordBreak: "break-all",
-				color: "var(--dsw-alias-label-primary, #eee)",
-			},
-		}, value),
-	];
-}
-
 exports.inject = ["slots", "sidebarRight", "sidebarRightTabs"];
 
 exports.apply = function apply(ctx) {
 	// --------------------------------------------------------------------------
-	// 1. Settings Card: HelmdHealthCard
-	//    Health is boot-time derived state served over HTTP (0.1.7 settings
-	//    only carries Config schemas, so there is no settings scope to bind).
+	// 1. Header Capsule Action Button: HelmdPresetCapsuleButton
+	//    Upgrades the header's helmd label into an interactive capsule button.
 	// --------------------------------------------------------------------------
-	function HelmdHealthCard() {
-		const state = React.useState(null);
-		const snap = state[0];
-		const setSnap = state[1];
-		React.useEffect(() => {
-			var alive = true;
-			function load() {
-				fetch("/api/helmd/health").then(function (r) { return r.json(); }).then(function (j) {
-					if (alive && j && j.ok) setSnap(j.data);
-				}).catch(function () {});
-			}
-			load();
-			var timer = setInterval(load, 30000);
-			return function () { alive = false; clearInterval(timer); };
-		}, []);
-
-		const [open, setOpen] = React.useState(false);
-
-		const v = snap || {};
-		const status = typeof v.status === "string" ? v.status : "UNKNOWN";
-		const statusColor = STATUS_TONE[status] || STATUS_TONE.UNKNOWN;
-		const statusText = STATUS_LABEL[status] || status;
-
-		const rows = [];
-		if (v.detail) rows.push(row("说明 Detail", v.detail));
-		if (v.hostFingerprint) rows.push(row("宿主指纹 Host fp", v.hostFingerprint));
-		if (v.presetFingerprint) rows.push(row("产物指纹 Preset fp", v.presetFingerprint));
-		if (v.version) rows.push(row("版本 Version", v.version));
-		if (v.autoHeal) rows.push(row("自动修复 Auto-heal", v.autoHeal));
-		if (v.checkedAt) rows.push(row("评估于 Checked at", v.checkedAt));
-		if (v.presetPath) rows.push(row("预设 Patch", v.presetPath));
-		if (v.hostPath) rows.push(row("宿主 standard", v.hostPath));
-		rows.push(row("提示 Hint", "重启 dsh 后重新评估 · evaluated once per dsh boot"));
-
-		const cardStyle = {
-			listStyle: "none",
-			border: `0.5px solid ${open ? "var(--dsw-alias-label-dimmed, rgba(255,255,255,0.2))" : "var(--dsw-alias-border-l4, rgba(255,255,255,0.1))"}`,
-			borderRadius: 16,
-			background: open ? "var(--dsw-alias-bg-layer-2, #1c1c1e)" : "var(--dsw-alias-bg-layer-3, #161618)",
-			transition: "border-color .16s, background .16s",
-		};
-
-		const headerStyle = {
-			width: "100%",
-			appearance: "none",
-			border: 0,
-			background: "none",
-			font: "inherit",
-			color: "inherit",
-			textAlign: "left",
-			cursor: "pointer",
-			display: "flex",
-			alignItems: "center",
-			gap: 12,
-			padding: "14px 16px",
-			borderRadius: 12,
-		};
-
-		const headTextStyle = {
-			flex: 1,
-			minWidth: 0,
-			display: "flex",
-			flexDirection: "column",
-			gap: 4,
-		};
-
-		const nameStyle = {
-			fontSize: 15,
-			fontWeight: 600,
-			lineHeight: 1.4,
-			color: "var(--dsw-alias-label-primary, #fff)",
-		};
-
-		const descriptionStyle = {
-			fontSize: 13,
-			lineHeight: 1.5,
-			color: "var(--dsw-alias-label-tertiary, #888)",
-		};
-
-		const tagStyle = {
-			flex: "none",
-			display: "inline-flex",
-			alignItems: "center",
-			padding: "2px 8px",
-			borderRadius: 999,
-			fontSize: 11,
-			lineHeight: "16px",
-			fontWeight: 500,
-			color: statusColor,
-			background: "rgba(255, 255, 255, 0.05)",
-			border: `1px solid ${statusColor}`,
-			whiteSpace: "nowrap",
-		};
-
-		const bodyStyle = {
-			borderTop: "0.5px solid var(--dsw-alias-border-l2, rgba(255,255,255,0.08))",
-			margin: "0 16px",
-			padding: "12px 0 16px",
-		};
-
-		const rowsStyle = {
-			margin: 0,
-			display: "grid",
-			gridTemplateColumns: "max-content 1fr",
-			gap: "4px 14px",
-			fontSize: 12,
-			lineHeight: 1.6,
-		};
-
-		return h("li", { style: cardStyle },
-			h("button", {
-				type: "button",
-				style: headerStyle,
-				"aria-expanded": open,
-				onClick: () => setOpen(!open),
-			},
-				h("span", { style: headTextStyle },
-					h("span", { style: nameStyle }, "helmd 安全分析包"),
-					h("span", { style: descriptionStyle }, "二进制 / 移动 / Web / 协议 / AI 综合安全逆向引擎"),
-				),
-				h("span", { style: tagStyle }, statusText),
-				h(ChevronIcon, { open: open }),
-			),
-			open ? h("div", { style: bodyStyle },
-				v.detail ? h("p", {
-					style: {
-						margin: "0 0 10px",
-						fontSize: 12,
-						lineHeight: 1.5,
-						color: "var(--dsw-alias-label-secondary, #aaa)",
-					},
-				}, v.detail) : null,
-				h("dl", { style: rowsStyle }, rows),
-			) : null,
-		);
-	}
-
-	ctx.slots.inject("settings.plugin.item", function* () {
-		yield ctx.slots.register({
-			name: "settings.plugin.item",
-			key: NS,
-			inject: () => ({}),
-		}, HelmdHealthCard);
-	});
-
-	// --------------------------------------------------------------------------
-	// 2. Header Capsule Action Button: HelmdPresetCapsuleButton
 	//    Upgrades the header's helmd label into an interactive capsule button.
 	// --------------------------------------------------------------------------
 	function HelmdPresetCapsuleButton(props) {
@@ -303,10 +115,10 @@ exports.apply = function apply(ctx) {
 					padding: "0 4px",
 					height: 22,
 					borderRadius: 6,
-					background: "var(--dsw-alias-fill-tsp-secondary, rgba(255,255,255,0.06))",
+					background: "var(--dsw-alias-fill-tsp-secondary)",
 					fontSize: 12,
 					lineHeight: "22px",
-					color: "var(--dsw-alias-label-secondary, #aaa)",
+					color: "var(--dsw-alias-label-secondary)",
 					whiteSpace: "nowrap",
 					overflow: "hidden",
 					textOverflow: "ellipsis",
@@ -342,42 +154,47 @@ exports.apply = function apply(ctx) {
 			};
 		}, [open]);
 
-		// Dual-action trigger: Open inline workbench drawer AND trigger rightbar expansion
+		// The right sidebar is the primary workbench surface. The popover is only
+		// a fallback for hosts without the sidebarRight service — opening both at
+		// once duplicated the whole panel over the conversation.
 		function handleToggleWorkbench(e) {
 			e.preventDefault();
 			e.stopPropagation();
-			setOpen((prev) => !prev);
 
-			// Also trigger sidebarRight expansion if available
 			const expandBtn = document.querySelector('[data-sidebar-right-expand]') ||
 			                  document.querySelector('button[aria-label="打开右侧边栏"]') ||
 			                  document.querySelector('button[aria-label="Open right sidebar"]');
 			if (expandBtn) {
-				try {
-					expandBtn.click();
-				} catch (err) {}
+				try { expandBtn.click(); } catch (err) {}
 			}
 
 			const sid = props.sessionId;
 			const activateTab = () => {
+				let opened = false;
 				if (ctx.sidebarRight) {
 					if (sid && typeof ctx.sidebarRight.openTabIn === "function") {
-						try { ctx.sidebarRight.openTabIn(sid, "eval"); } catch (err) {}
+						try { ctx.sidebarRight.openTabIn(sid, "eval"); opened = true; } catch (err) {}
 					}
 					if (typeof ctx.sidebarRight.openTab === "function") {
-						try { ctx.sidebarRight.openTab("eval"); } catch (err) {}
+						try { ctx.sidebarRight.openTab("eval"); opened = true; } catch (err) {}
 					}
 					if (typeof ctx.sidebarRight.isExpanded === "function" && !ctx.sidebarRight.isExpanded()) {
 						try {
 							if (typeof ctx.sidebarRight.toggleExpanded === "function") {
 								ctx.sidebarRight.toggleExpanded();
+								opened = true;
 							}
 						} catch (err) {}
 					}
 				}
+				return opened;
 			};
-			activateTab();
-			setTimeout(activateTab, 80);
+			if (activateTab()) {
+				setOpen(false);
+				return;
+			}
+			setOpen((prev) => !prev);
+			setTimeout(() => { if (activateTab()) setOpen(false); }, 80);
 		}
 
 		return h("div", {
@@ -390,7 +207,7 @@ exports.apply = function apply(ctx) {
 				className: "helmd-capsule-action",
 				"aria-expanded": open,
 				"aria-label": "打开 helmd 安全分析工作台",
-				title: "打开 helmd 安全分析工作台 (模型评测控制台 / 19+ 逆向工具货架 / 流式审计)",
+				title: "打开 helmd 安全分析工作台 (破甲 / Case / 拦截 / 关于)",
 				onClick: handleToggleWorkbench,
 				onMouseEnter: () => setHovered(true),
 				onMouseLeave: () => { setHovered(false); setActive(false); },
@@ -403,9 +220,9 @@ exports.apply = function apply(ctx) {
 					height: 22,
 					padding: "0 8px 0 6px",
 					borderRadius: 6,
-					border: `1px solid ${open || active ? "var(--dsw-alias-border-l1, rgba(255,255,255,0.4))" : hovered ? "var(--dsw-alias-border-l4, rgba(255,255,255,0.25))" : "var(--dsw-alias-border-l3, rgba(255,255,255,0.14))"}`,
-					background: open || active ? "var(--dsw-alias-fill-tsp-active, rgba(255,255,255,0.16))" : hovered ? "var(--dsw-alias-fill-tsp-primary, rgba(255,255,255,0.11))" : "var(--dsw-alias-fill-tsp-secondary, rgba(255,255,255,0.06))",
-					color: hovered || open ? "var(--dsw-alias-label-primary, #fff)" : "var(--dsw-alias-label-secondary, #ddd)",
+					border: `1px solid ${open || active ? "var(--dsw-alias-border-l1)" : hovered ? "var(--dsw-alias-border-l4)" : "var(--dsw-alias-border-l3)"}`,
+					background: open || active ? "var(--dsw-alias-fill-tsp-active)" : hovered ? "var(--dsw-alias-fill-tsp-primary)" : "var(--dsw-alias-fill-tsp-secondary)",
+					color: hovered || open ? "var(--dsw-alias-label-primary)" : "var(--dsw-alias-label-secondary)",
 					fontSize: 12,
 					fontWeight: 500,
 					lineHeight: "20px",
@@ -420,7 +237,7 @@ exports.apply = function apply(ctx) {
 				h(IconAgentPreset, {
 					size: 14,
 					style: {
-						color: "var(--dsw-alias-state-success-primary, #10b981)",
+						color: "var(--dsw-alias-state-success-primary)",
 						opacity: 0.95,
 						transition: "transform .16s ease",
 						transform: hovered || open ? "scale(1.08)" : "scale(1)",
@@ -430,7 +247,7 @@ exports.apply = function apply(ctx) {
 					style: {
 						fontFamily: "inherit",
 						fontWeight: 600,
-						color: "var(--dsw-alias-label-primary, #fff)",
+						color: "var(--dsw-alias-label-primary)",
 					},
 				}, "helmd"),
 				h("span", {
@@ -439,8 +256,8 @@ exports.apply = function apply(ctx) {
 						lineHeight: "13px",
 						padding: "1px 4px",
 						borderRadius: 4,
-						background: open ? "rgba(16, 185, 129, 0.25)" : "rgba(16, 185, 129, 0.15)",
-						color: "var(--dsw-alias-state-success-primary, #34d399)",
+						background: "var(--dsw-alias-state-success-tertiary)",
+						color: "var(--dsw-alias-state-success-primary)",
 						fontWeight: 500,
 						letterSpacing: "0.2px",
 					},
@@ -454,13 +271,13 @@ exports.apply = function apply(ctx) {
 					top: "calc(100% + 6px)",
 					left: 0,
 					zIndex: 1000,
-					width: 440,
-					maxWidth: "min(440px, 90vw)",
-					height: 520,
-					maxHeight: "min(520px, 80vh)",
-					borderRadius: 14,
-					background: "var(--dsw-alias-bg-layer-1, #121214)",
-					border: "1px solid var(--dsw-alias-border-l1, rgba(255,255,255,0.2))",
+					width: 470,
+					maxWidth: "min(470px, 92vw)",
+					height: 580,
+					maxHeight: "min(580px, 84vh)",
+					borderRadius: 16,
+					background: "var(--dsw-alias-bg-layer-1)",
+					border: "1px solid var(--dsw-alias-border-l1)",
 					boxShadow: "0 16px 36px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.25)",
 					overflow: "hidden",
 					display: "flex",
@@ -487,193 +304,506 @@ exports.apply = function apply(ctx) {
 	});
 
 	// --------------------------------------------------------------------------
-	// 3. Right Sidebar Workbench Tab: 分类工具货架 + 模型评测 + 拦截日志
+	// 3. Right Sidebar Workbench Tab: 破甲 / Case / 拦截 / 关于
 
-	// ── 外部工具货架的基线数据（跨平台分发） ──────────────────────
-	const UNIVERSAL_TOOL_BASELINE = [
-		{ name: "de4dot", cat: "逆向", desc: ".NET 混淆器自动识别与符号脱壳", path: "~/.dsh/helmd-tools/de4dot" },
-		{ name: "hwbp_engine6_7", cat: "逆向", desc: "硬件断点 + 内存取证", path: "~/.dsh/helmd-tools/hwbp" },
-		{ name: "LuckyStarMcp_py", cat: "逆向", desc: "Android MCP 桥（14447）", path: "~/.dsh/helmd-tools/LuckyStarMcp" },
-		{ name: "kali-wsl-webtoolchain", cat: "webpentest", desc: "Kali WSL2 工具链（nmap/sqlmap/nikto/gobuster/ffuf/nuclei/wpscan...）", path: "WSL kali-linux" },
-		{ name: "ZkmProbe3_java_ZKM24_", cat: "逆向", desc: "ZKM 24 字符串离线解密", path: "~/.dsh/helmd-tools/ZkmProbe3" },
-		{ name: "dnfile_pefile_NET_metadata_forensics_", cat: "netsec", desc: ".NET 元数据/方法体取证", path: "~/.dsh/helmd-tools/dnfile" },
-		{ name: "python-resolution-windows", cat: "generic", desc: "Windows Python 解析（py/python3）", path: "System PATH" },
-		{ name: "zstd-jsonl_mjs", cat: "generic", desc: "zstd 压缩 JSONL 读写", path: "~/.dsh/helmd-tools/zstd-jsonl" },
-		{ name: "dsh-archived_ps1", cat: "generic", desc: "DSH 归档会话恢复", path: "~/.dsh/helmd-tools/dsh-archived" },
-	];
-
-	// ── 工具分类体系（大类 → 小类） ─────────────────────────────
-	const TOOL_TAXONOMY = [
-		{ id: "recon", label: "侦察与分析", sub: [
-			{ id: "triage", label: "样本分诊", tools: ["triage_artifact", "hash_artifact", "detect_packer"] },
-			{ id: "strings", label: "字符串与编码", tools: ["scan_strings", "encoding_detect", "xor_bruteforce"] },
-			{ id: "fs", label: "文件系统", tools: ["glob", "grep", "read", "read_image"] },
-			{ id: "net", label: "网络侦察", tools: ["web_fetch", "web_search"] },
-		]},
-		{ id: "attack", label: "攻击与利用", sub: [
-			{ id: "injection", label: "注入类", tools: [] },
-			{ id: "auth", label: "认证绕过", tools: [] },
-			{ id: "rce", label: "命令执行", tools: [] },
-			{ id: "eval", label: "模型评测", tools: ["llm_probe"] },
-		]},
-		{ id: "evidence", label: "取证与报告", sub: [
-			{ id: "case", label: "Case 管理", tools: ["begin_case", "case_status", "record_finding", "end_case"] },
-			{ id: "evidence", label: "证据存储", tools: ["save_evidence", "evidence_reference"] },
-		]},
-		{ id: "external", label: "外部工具货架", sub: [
-			{ id: "reversing", label: "逆向工程", tools: [] },
-			{ id: "webpentest", label: "Web 渗透", tools: [] },
-			{ id: "netsec", label: ".NET / 逆向", tools: [] },
-			{ id: "generic", label: "通用", tools: [] },
-		]},
-		{ id: "system", label: "系统与配置", sub: [
-			{ id: "host", label: "宿主工具", tools: ["pwsh", "bash", "write", "edit", "todo_write", "present"] },
-			{ id: "subagent", label: "子代理", tools: ["subagent", "subagent_fork", "list_agents", "interrupt_agent", "send_message"] },
-			{ id: "task", label: "任务与目标", tools: ["create_goal", "get_goal", "update_goal", "job_list", "job_output", "job_kill"] },
-			{ id: "routing", label: "路由与模式", tools: ["route_task", "analysis_mode", "skill_catalog"] },
-		]},
-	];
-
-	const EXTERNAL_MAP = {
-		"de4dot": "reversing", "hwbp_engine6_7": "reversing", "hwbp_engine5": "reversing",
-		"LuckyStarMcp_py": "reversing", "kali-wsl-webtoolchain": "webpentest",
-		"ZkmProbe3_java_ZKM24_": "netsec", "dnfile_pefile_NET_metadata_forensics_": "netsec",
-		"python-resolution-windows": "generic", "zstd-jsonl_mjs": "generic", "dsh-archived_ps1": "generic",
+	// ── 视觉基础（对齐 DSH 原生 token） ─────────────────────────
+	// Hover / focus / scrollbar states need real CSS; structural styles stay
+	// inline. The sheet renders inside the panel and is removed on unmount.
+	const GREEN = "var(--dsw-alias-state-success-primary)";
+	const TONE = {
+		success: GREEN,
+		warn: "var(--dsw-alias-state-warn-primary)",
+		error: "var(--dsw-alias-state-error-primary)",
+		info: "var(--dsw-alias-state-business-primary)",
+		muted: "var(--dsw-alias-label-tertiary)",
+	};
+	const CODE = "var(--ds-font-family-code)";
+	const PROFILE_META = {
+		core: { tag: "全量主档", desc: "全部域规则 · 完整破甲 · 默认档" },
+		stealth: { tag: "轻量隐匿", desc: "最小输出 · 只读优先 · 单目标收敛" },
+		"redteam-max": { tag: "渗透加厚", desc: "全链路攻击 · 攻防双栏 · 产物成套" },
 	};
 
-	// ── 共享样式 ─────────────────────────────────────────────────
+	const WORKBENCH_CSS = [
+		"button{appearance:none;-webkit-appearance:none;color-scheme:inherit}",
+		".hm-scroll{scrollbar-width:thin;scrollbar-color:var(--dsw-alias-scrollbar-bg-l2) transparent}",
+		".hm-scroll::-webkit-scrollbar{width:8px;height:8px}",
+		".hm-scroll::-webkit-scrollbar-thumb{background:var(--dsw-alias-scrollbar-bg-l2);border-radius:4px;background-clip:padding-box;border:2px solid transparent}",
+		".hm-scroll::-webkit-scrollbar-thumb:hover{background:var(--dsw-alias-scrollbar-hover-l2)}",
+		".hm-row{transition:background .1s}",
+		".hm-row:hover{background:var(--dsw-alias-interactive-bg-hover)}",
+		".hm-tab{transition:color .1s}",
+		".hm-tab:hover{color:var(--dsw-alias-label-primary)}",
+		".hm-btn{transition:background .1s,border-color .1s}",
+		".hm-btn:hover{background:var(--dsw-alias-interactive-bg-hover)}",
+		".hm-fade{animation:ds-in .12s ease-out both}",
+		"@keyframes ds-in{from{opacity:0}to{opacity:1}}",
+		"@media (prefers-reduced-motion: reduce){.helmd-workbench .hm-fade{animation:none!important}.helmd-workbench *{transition:none!important}}",
+	].map(function (rule) {
+		return rule.charAt(0) === "@" ? rule : ".helmd-workbench " + rule;
+	}).join("\n");
+
 	const S = {
-		card: { background: "var(--dsw-alias-bg-layer-2, #1a1a1d)", borderRadius: 8, padding: "10px 12px", border: "0.5px solid var(--dsw-alias-border-l2, rgba(255,255,255,0.08))" },
-		title: { fontSize: 13, fontWeight: 600, color: "var(--dsw-alias-label-primary, #fff)", margin: "0 0 6px" },
-		body: { fontSize: 12, color: "var(--dsw-alias-label-secondary, #aaa)", lineHeight: "18px" },
-		tag: function (c) { return { display: "inline-block", padding: "1px 6px", borderRadius: 4, fontSize: 10, fontWeight: 600, background: c + "20", color: c }; },
-		row: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", borderBottom: "1px solid var(--dsw-alias-border-l1, rgba(255,255,255,0.04))" },
-		rowLabel: { fontSize: 12, color: "var(--dsw-alias-label-secondary, #aaa)" },
-		rowValue: { fontSize: 12, color: "var(--dsw-alias-label-primary, #fff)", fontFamily: MONO },
-		expand: { cursor: "pointer", userSelect: "none" },
-		sub: { marginLeft: 14, borderLeft: "2px solid var(--dsw-alias-border-l2, rgba(255,255,255,0.08))", paddingLeft: 10 },
-		addBtn: { padding: "4px 10px", borderRadius: 6, border: "1px solid var(--dsw-alias-border-l2, rgba(255,255,255,0.1))", background: "transparent", color: "var(--dsw-alias-label-primary, #fff)", cursor: "pointer", fontSize: 12 },
-		pre: { fontSize: 11, color: "var(--dsw-alias-label-tertiary, #666)", background: "rgba(0,0,0,.2)", padding: 8, borderRadius: 4, overflow: "auto", margin: "6px 0" },
+		card: {
+			background: "var(--dsw-alias-settings-card-fill)",
+			border: "0.5px solid var(--dsw-alias-settings-card-stroke)",
+			borderRadius: "var(--dsw-radius-md)",
+			padding: "12px 14px",
+		},
+		title: { fontSize: 13, fontWeight: 600, margin: 0, color: "var(--dsw-alias-label-primary)" },
+		body: { fontSize: 13, lineHeight: "20px", color: "var(--dsw-alias-label-secondary)" },
+		caption: { fontSize: 11, lineHeight: "16px", color: "var(--dsw-alias-label-tertiary)" },
+		label: { fontSize: 12, fontWeight: 500, color: "var(--dsw-alias-label-tertiary)" },
+		pill: function (color, quiet) {
+			return {
+				display: "inline-flex", alignItems: "center", padding: "1px 6px", borderRadius: 4,
+				fontSize: 10.5, lineHeight: "17px", fontWeight: 500, whiteSpace: "nowrap",
+				color: quiet ? "var(--dsw-alias-label-secondary)" : color,
+				background: quiet ? "var(--dsw-alias-bg-module-platform)" : "color-mix(in srgb, " + color + " 14%, transparent)",
+				border: "none",
+			};
+		},
 	};
 
-	function ToolRow(name, tag, tagColor) {
-		return h("div", { key: name, style: Object.assign({}, S.row, { paddingLeft: 6 }) },
-			h("span", { style: S.rowLabel }, name),
-			h("span", { style: S.tag(tagColor) }, tag)
+	function CaseIcon() {
+		return h("svg", {
+			viewBox: "0 0 24 24", width: 24, height: 24, fill: "none", stroke: "currentColor",
+			strokeWidth: 1.4, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true",
+		},
+			h("path", { d: "M3.5 7.5A1.5 1.5 0 0 1 5 6h4l2 2h8a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z" }),
+			h("path", { d: "M8 12h8M8 15h5" }),
 		);
 	}
 
-	// ── Tab 1: 工具货架（分类层级树） ────────────────────────────
-	function ToolShelfTab(props) {
-		var registered = props.registeredTools || [];
-		var dynamic = Array.isArray(registered) ? registered : [];
+	function StatTile(props) {
+		return h("div", {
+			style: {
+				flex: 1, minWidth: 0, padding: "9px 11px", borderRadius: "var(--dsw-radius-sm)",
+				background: "var(--dsw-alias-bg-layer-1)",
+				border: "0.5px solid var(--dsw-alias-border-l1)",
+			},
+		},
+			h("div", { style: S.caption }, props.label),
+			h("div", {
+				style: {
+					marginTop: 2, fontSize: 20, fontWeight: 500, lineHeight: "26px",
+					fontVariantNumeric: "tabular-nums",
+					color: props.tone || "var(--dsw-alias-label-primary)",
+				},
+			}, String(props.value)),
+			props.hint ? h("div", { style: Object.assign({}, S.caption, { marginTop: 1 }) }, props.hint) : null,
+		);
+	}
 
-		var openCats = React.useState({});
-		var oc = openCats[0], setOc = openCats[1];
-		var openSubs = React.useState({});
-		var os = openSubs[0], setOs = openSubs[1];
-		var adding = React.useState(false);
-		var isAdding = adding[0], setAdding = adding[1];
+	function EmptyState(props) {
+		return h("div", {
+			style: {
+				display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+				gap: 6, padding: "28px 16px", textAlign: "center",
+			},
+		},
+			props.icon ? h("div", { style: { color: "var(--dsw-alias-label-tertiary)", display: "flex" } }, props.icon) : null,
+			h("div", { style: { fontSize: 13, color: "var(--dsw-alias-label-secondary)" } }, props.title),
+			props.hint ? h("div", { style: Object.assign({}, S.caption, { maxWidth: 260 }) }, props.hint) : null,
+		);
+	}
 
-		function toggleCat(id) { var n = Object.assign({}, oc); n[id] = !n[id]; setOc(n); }
-		function toggleSub(id) { var n = Object.assign({}, os); n[id] = !n[id]; setOs(n); }
-
-		return h("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
-			h("div", { style: { display: "flex", justifyContent: "flex-end" } },
-				h("button", { style: S.addBtn, onClick: function () { setAdding(!isAdding); } }, isAdding ? "\u2715 取消" : "+ 添加工具")
+	// ── Tab 1: Case ──────────────────────────────────────────────
+	function CaseTab(props) {
+		var cd = props.caseData;
+		if (!cd || !cd.active) {
+			return h("div", { style: S.card },
+				h(EmptyState, {
+					icon: h(CaseIcon, null),
+					title: "暂无进行中的案件",
+					hint: "在对话里调用 begin_case 建立案件，假设、证据与结论会自动汇总到这里。",
+				})
+			);
+		}
+		var hyps = cd.hypotheses || [];
+		var findings = Array.isArray(props.findings) ? props.findings : [];
+		var evidence = Array.isArray(props.evidence) ? props.evidence : [];
+		var hypRows = hyps.map(function (hh) {
+			var color = hh.status === "confirmed" ? TONE.success
+				: hh.status === "refuted" ? TONE.error
+				: hh.status === "blocked" ? TONE.warn
+				: TONE.info;
+			return h("div", {
+				key: hh.id, className: "hm-row",
+				style: {
+					display: "flex", alignItems: "flex-start", gap: 8,
+					padding: "7px 6px", borderRadius: "var(--dsw-radius-xs)",
+				},
+			},
+				h("span", {
+					style: { width: 6, height: 6, borderRadius: 999, background: color, flex: "none", marginTop: 6 },
+				}),
+				h("span", {
+					style: { fontFamily: CODE, fontSize: 11, lineHeight: "17px", color: TONE.muted, minWidth: 42, flex: "none" },
+				}, hh.id),
+				h("span", {
+					style: {
+						flex: 1, minWidth: 0, fontSize: 12, lineHeight: "18px",
+						color: "var(--dsw-alias-label-secondary)",
+					},
+				}, hh.statement),
+				h("span", { style: S.pill(color) }, hh.status)
+			);
+		});
+		return h("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+			h("div", { style: S.card },
+				h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+					h("span", {
+						style: {
+							flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600,
+							color: "var(--dsw-alias-label-primary)",
+							overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+						},
+					}, cd.name || "case"),
+					h("button", {
+						type: "button", onClick: props.onRefresh, className: "hm-btn",
+						style: {
+							height: 24, padding: "0 8px", borderRadius: 4,
+							border: "0.5px solid var(--dsw-alias-border-l3)", background: "transparent",
+							color: "var(--dsw-alias-label-secondary)", fontSize: 11, cursor: "pointer",
+						},
+					}, "刷新"),
+					h("span", { style: S.pill(TONE.success) }, "OPEN")
+				),
+				cd.goal ? h("div", { style: Object.assign({}, S.body, { marginTop: 6 }) }, cd.goal) : null,
+				h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 } },
+					h(StatTile, { label: "Evidence", value: cd.evidenceCount || 0, tone: TONE.info }),
+					h(StatTile, {
+						label: "Open hypotheses",
+						value: cd.openHypotheses || 0,
+						tone: (cd.openHypotheses || 0) > 0 ? TONE.warn : TONE.success,
+					})
+				)
 			),
-			isAdding ? h("div", { style: S.card },
-				h("p", { style: S.title }, "通过 tool_memory 添加工具"),
-				h("div", { style: S.body }, "在对话中让模型调用 tool_memory 工具注册新工具，注册后自动出现在对应分类下："),
-				h("pre", { style: S.pre }, 'tool_memory {\n  action: "register",\n  tool_name: "my-tool",\n  tool_path: "/path/to/tool",\n  purpose: "用途"\n}'),
-			) : null,
-			TOOL_TAXONOMY.map(function (cat) {
-				var isOpen = oc[cat.id];
-				var allTools = [];
-				cat.sub.forEach(function (sub) {
-					sub.tools.forEach(function (t) { allTools.push({ name: t, subId: sub.id, subLabel: sub.label, ext: false }); });
-				});
-				if (cat.id === "external") {
-					Object.keys(EXTERNAL_MAP).forEach(function (name) {
-						var subId = EXTERNAL_MAP[name];
-						allTools.push({ name: name, subId: subId, subLabel: subId, ext: true });
-					});
-				}
-				// 合并 dynamic tools（从 TOOLS.md 来的）
-				dynamic.forEach(function (t) {
-					if (t && t.name && !allTools.some(function (x) { return x.name === t.name; })) {
-						var subId = EXTERNAL_MAP[t.name] || (cat.id === "external" ? "generic" : null);
-						if (subId) allTools.push({ name: t.name, subId: subId, subLabel: subId, ext: true });
-					}
-				});
-				return h("div", { key: cat.id, style: S.card },
-					h("div", { style: Object.assign({}, S.expand, { display: "flex", justifyContent: "space-between", alignItems: "center" }),
-						onClick: function () { toggleCat(cat.id); } },
-						h("span", { style: S.title }, cat.label),
-						h("span", { style: { fontSize: 11, color: "var(--dsw-alias-label-tertiary, #666)" } }, allTools.length + (isOpen ? " — hide" : " — show"))
-					),
-					isOpen ? h("div", { style: { display: "flex", flexDirection: "column", gap: 4 } },
-						cat.sub.map(function (sub) {
-							var subKey = cat.id + ":" + sub.id;
-							var isSubOpen = os[subKey];
-							var tools = allTools.filter(function (t) { return t.subId === sub.id; });
-							return h("div", { key: subKey, style: S.sub },
-								h("div", { style: Object.assign({}, S.expand, { display: "flex", justifyContent: "space-between" }),
-									onClick: function () { toggleSub(subKey); } },
-									h("span", { style: { fontSize: 12, color: "var(--dsw-alias-label-secondary, #aaa)", fontWeight: 500 } }, sub.label),
-									h("span", { style: { fontSize: 11, color: "var(--dsw-alias-label-tertiary, #666)" } }, tools.length + (isSubOpen ? " — hide" : " — show"))
-								),
-								isSubOpen ? h("div", { style: { display: "flex", flexDirection: "column", gap: 2 } },
-									tools.map(function (t) {
-										return h("div", { key: t.name, style: Object.assign({}, S.row, { paddingLeft: 6 }) },
-											h("span", { style: S.rowLabel }, t.name),
-											h("span", { style: { display: "inline-block", padding: "1px 8px", borderRadius: 999, fontSize: 11, lineHeight: "17px", fontWeight: 500, whiteSpace: "nowrap", background: t.ext ? "color-mix(in srgb, var(--dsw-alias-state-business-primary) 10%, transparent)" : "transparent", color: t.ext ? "var(--dsw-alias-state-business-primary)" : "var(--dsw-alias-label-tertiary)", border: t.ext ? "none" : "0.5px solid var(--dsw-alias-border-l4)" } }, t.ext ? "external" : "builtin")
-										);
-									})
-								) : null
+			h("div", { style: S.card },
+				h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: hyps.length ? 6 : 0 } },
+					h("span", { style: S.title }, "假设"),
+					h("span", { style: S.caption }, String(hyps.length))
+				),
+				hypRows.length > 0
+					? h("div", { style: { display: "flex", flexDirection: "column", gap: 2 } }, hypRows)
+					: h(EmptyState, {
+						title: "还没有假设",
+						hint: "用 record_hypothesis 记录可证伪的判断，再用 update_hypothesis 裁决。",
+					})
+			),
+			h("div", { style: S.card },
+				h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: findings.length ? 6 : 0 } },
+					h("span", { style: S.title }, "结论"),
+					h("span", { style: S.caption }, String(findings.length))
+				),
+				findings.length > 0
+					? h("div", { style: { display: "flex", flexDirection: "column", gap: 6 } },
+						findings.map(function (f, index) {
+							return h("div", {
+								key: "finding-" + index,
+								style: {
+									padding: "7px 9px", borderRadius: 4,
+									background: "var(--dsw-alias-bg-layer-1)",
+									border: "0.5px solid var(--dsw-alias-border-l1)",
+								},
+							},
+								h("div", { style: { fontSize: 12, fontWeight: 500, color: "var(--dsw-alias-label-primary)" } }, f.title),
+								f.detail ? h("div", { style: { marginTop: 2, fontSize: 11, lineHeight: "17px", color: "var(--dsw-alias-label-secondary)", whiteSpace: "pre-wrap" } }, f.detail.slice(0, 240)) : null,
+								f.evidence ? h("div", { style: { marginTop: 3, fontFamily: CODE, fontSize: 10.5, color: TONE.muted } }, f.evidence) : null,
+								f.repro
+									? h("div", { style: { marginTop: 2, fontFamily: CODE, fontSize: 10.5, color: TONE.muted } }, "repro: " + f.repro)
+									: h("div", { style: { marginTop: 2, fontSize: 10.5, color: TONE.warn } }, "repro: MISSING")
 							);
 						})
-					) : null
-				);
-			})
+					)
+					: h(EmptyState, {
+						title: "还没有结论",
+						hint: "record_finding 后，结论与引用的证据会出现在这里。",
+					})
+			),
+			h("div", { style: S.card },
+				h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: evidence.length ? 6 : 0 } },
+					h("span", { style: S.title }, "证据"),
+					h("span", { style: S.caption }, String(evidence.length))
+				),
+				evidence.length > 0
+					? h("div", { style: { display: "flex", flexDirection: "column", gap: 1 } },
+						evidence.map(function (entry) {
+							return h("div", {
+								key: entry.id, className: "hm-row",
+								style: { display: "flex", alignItems: "center", gap: 8, padding: "4px 6px", borderRadius: 4 },
+							},
+								h("span", { style: { fontFamily: CODE, fontSize: 10.5, color: TONE.info, minWidth: 44, flex: "none" } }, entry.id),
+								h("span", { style: { flex: 1, minWidth: 0, fontSize: 11, color: "var(--dsw-alias-label-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, entry.file)
+							);
+						})
+					)
+					: h(EmptyState, {
+						title: "还没有证据",
+						hint: "save_evidence 或工具输出落盘后，E 编号会出现在这里。",
+					})
+			)
 		);
 	}
 
-	// ── Tab 2: 模型评测 ──────────────────────────────────────────
-	function AttackLogTab(props) {
-		return h("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+	// ── Tab 2: 破甲档位（热切换） ────────────────────────────────
+	function ProfileTab(props) {
+		var p = props.profileData;
+		if (!p || !Array.isArray(p.profiles) || p.profiles.length === 0) {
+			return h("div", { style: S.card },
+				h(EmptyState, {
+					title: "档位目录未就绪",
+					hint: "读取 profiles.dat 失败，或宿主 API 尚未注册。",
+				})
+			);
+		}
+		var active = null;
+		p.profiles.forEach(function (pf) { if (pf.id === p.activeId) active = pf; });
+		var activeMeta = active ? (PROFILE_META[active.id] || { tag: "", desc: "" }) : { tag: "", desc: "" };
+		var rows = p.profiles.map(function (pf) {
+			var isActive = pf.id === p.activeId;
+			var meta = PROFILE_META[pf.id] || { tag: "", desc: "" };
+			return h("button", {
+				key: pf.id,
+				className: "hm-row",
+				type: "button",
+				disabled: isActive || props.switching,
+				onClick: function () { props.onSwitch(pf.id); },
+				style: {
+					display: "flex", alignItems: "center", gap: 10, width: "100%",
+					textAlign: "left", padding: "10px 12px",
+					borderRadius: "var(--dsw-radius-md)",
+					cursor: isActive ? "default" : "pointer", color: "inherit",
+					border: "0.5px solid " + (isActive ? "var(--dsw-alias-state-success-primary)" : "var(--dsw-alias-settings-card-stroke)"),
+					background: "var(--dsw-alias-settings-card-fill)",
+				},
+			},
+				h("span", {
+					style: {
+						width: 16, height: 16, borderRadius: 999, flex: "none",
+						border: "1.5px solid " + (isActive ? GREEN : "var(--dsw-alias-border-l3)"),
+						display: "flex", alignItems: "center", justifyContent: "center",
+					},
+				}, isActive ? h("span", { style: { width: 8, height: 8, borderRadius: 999, background: GREEN } }) : null),
+				h("span", { style: { flex: 1, minWidth: 0 } },
+					h("span", { style: { display: "flex", alignItems: "baseline", gap: 6 } },
+						h("span", { style: { fontSize: 13, fontWeight: 500, color: "var(--dsw-alias-label-primary)" } }, pf.name || pf.id),
+						h("span", { style: { fontFamily: CODE, fontSize: 11, color: TONE.muted } }, pf.id)
+					),
+					h("span", { style: { display: "block", marginTop: 2, fontSize: 11, color: "var(--dsw-alias-label-tertiary)" } }, meta.desc || meta.tag)
+				),
+				h("span", {
+					style: {
+						flex: "none", fontSize: 12,
+						color: isActive ? GREEN : "var(--dsw-alias-label-tertiary)",
+					},
+				}, isActive ? "当前" : "切换")
+			);
+		});
+		return h("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
 			h("div", { style: S.card },
-				h("p", { style: S.title }, "\u26A1 模型评测记录"),
-				h("div", { style: S.body }, "当模型遇到拒绝且常规重试失败后，搜索循环自动启动：归因→变异→重试。"),
-				h("div", { style: Object.assign({}, S.body, { marginTop: 6 }) },
-					"查看结果：在对话中让模型调用 llm_probe { stats: true } 查看变体胜率表。"
+				h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+					h("span", { style: S.label }, "当前档位"),
+					h("span", { style: S.pill(TONE.success) }, "ACTIVE")
+				),
+				h("div", { style: { display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 } },
+					h("span", { style: { fontSize: 15, fontWeight: 600, color: "var(--dsw-alias-label-primary)" } }, active ? (active.name || active.id) : p.activeId),
+					h("span", { style: { fontFamily: CODE, fontSize: 11, color: TONE.muted } }, p.activeId)
+				),
+				h("div", { style: { marginTop: 4, fontSize: 12, lineHeight: "18px", color: "var(--dsw-alias-label-secondary)" } }, activeMeta.desc),
+				h("div", { style: { display: "flex", alignItems: "center", gap: 6, marginTop: 8, fontSize: 11, color: "var(--dsw-alias-label-tertiary)" } },
+					h("span", { style: { width: 6, height: 6, borderRadius: 999, background: GREEN } }),
+					"热切换 · 下一次模型调用生效 · 无需重启"
 				)
 			),
-			h("div", { style: S.card },
-				h("p", { style: S.title }, "变体优先级"),
-				h("div", { style: S.body },
-					h("div", { style: S.row }, h("span", null, "\uD83D\uDFE0 P0"), h("span", null, "两阶段自适应（采集→回注）")),
-					h("div", { style: S.row }, h("span", null, "\uD83D\uDFE0 P0"), h("span", null, "拒绝稀释（dilution-puzzle）")),
-					h("div", { style: S.row }, h("span", null, "\uD83D\uDFE1 P1"), h("span", null, "教育框架（educational）")),
-					h("div", { style: S.row }, h("span", null, "\uD83D\uDFE1 P1"), h("span", null, "审计框架（audit）")),
-					h("div", { style: S.row }, h("span", null, "\uD83D\uDFE2 P2"), h("span", null, "分析框架（analytical）")),
-				)
-			)
+			h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" } },
+				h("span", { style: S.label }, "切换档位"),
+				props.switching ? h("span", { style: S.caption }, "切换中…") : null
+			),
+			h("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, rows),
+			props.error ? h("div", {
+				style: {
+					padding: "8px 10px", borderRadius: "var(--dsw-radius-sm)", fontSize: 12, lineHeight: "18px",
+					color: TONE.error,
+					background: "var(--dsw-alias-state-error-tertiary)",
+					border: "0.5px solid color-mix(in srgb, " + TONE.error + " 35%, transparent)",
+				},
+			}, props.error) : null
 		);
 	}
 
 	// ── Tab 3: 拦截日志 ──────────────────────────────────────────
 	function InterceptTab(props) {
-		return h("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+		var d = props.interceptData || {};
+		var count = d.count || 0;
+		function line(prefix, value, tone) {
+			return h("div", { style: { display: "flex", gap: 8 } },
+				h("span", { style: { color: tone || GREEN, flex: "none" } }, prefix),
+				h("span", { style: { color: "var(--dsw-alias-label-secondary)", wordBreak: "break-word" } }, value)
+			);
+		}
+		return h("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
 			h("div", { style: S.card },
-				h("p", { style: S.title }, "Stream Intercept"),
-				h("div", { style: S.body }, "\u5B9E\u65F6\u6302\u94A9\u5728 LLM \u6D41\u5F0F\u8F93\u51FA\u524D\u7F6E\u8282\u70B9\uFF0C\u8BC6\u522B\u62D2\u7B54\u5E76\u81EA\u52A8\u66FF\u6362\u4E3A\u6280\u672F\u4EA4\u4ED8\u7269\u3002"),
+				h("div", { style: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 } },
+					h("div", null,
+						h("div", { style: S.label }, "流式拦截"),
+						h("div", { style: { marginTop: 2, fontSize: 20, fontWeight: 500, lineHeight: "26px", fontVariantNumeric: "tabular-nums", color: count > 0 ? GREEN : "var(--dsw-alias-label-primary)" } }, String(count)),
+						h("div", { style: S.caption }, "已拦截并走恢复阶梯的拒答次数")
+					),
+					h("span", { style: S.pill(count > 0 ? TONE.success : TONE.muted) }, count > 0 ? "ACTIVE" : "IDLE")
+				),
+				h("div", { style: Object.assign({}, S.body, { marginTop: 6 }) }, "实时挂载在 LLM 流式输出前置节点，识别拒答并自动替换为技术交付物。")
+			),
+			h("div", {
+				style: {
+					borderRadius: "var(--dsw-radius-md)", overflow: "hidden",
+					border: "0.5px solid var(--dsw-alias-border-l1)",
+					background: "var(--dsw-alias-markdown-code-block)",
+				},
+			},
+				h("div", {
+					style: {
+						display: "flex", alignItems: "center", gap: 6, padding: "8px 12px",
+						borderBottom: "0.5px solid var(--dsw-alias-border-l1)",
+					},
+				},
+					["var(--dsw-alias-state-error-primary)", "var(--dsw-alias-state-warn-primary)", "var(--dsw-alias-state-success-primary)"].map(function (c) {
+						return h("span", { key: c, style: { width: 7, height: 7, borderRadius: 999, background: c, opacity: 0.8 } });
+					}),
+					h("span", { style: { marginLeft: 4, fontFamily: CODE, fontSize: 11, color: TONE.muted } }, "helmd-stream-intercept.log")
+				),
+				h("div", {
+					className: "hm-scroll",
+					style: {
+						padding: "10px 12px", fontFamily: CODE, fontSize: 11, lineHeight: "18px",
+						maxHeight: 220, overflowY: "auto",
+					},
+				},
+					line("[STREAM-OK]", "拦截器已上线 · 已处理 " + count + " 次"),
+					d.lastTime ? line("[LAST]", d.lastTime, TONE.muted) : null,
+					d.lastSnippet ? line("[REFUSAL]", "\"" + d.lastSnippet + "\"", TONE.warn) : null,
+					line("[AUDIT]", "~/.dsh/helmd-stream-intercept.log", TONE.muted)
+				)
+			)
+		);
+	}
+
+	// ── Tab 4: 关于 ──────────────────────────────────────────────
+	function AboutTab(props) {
+		var state = React.useState(null);
+		var result = state[0]; var setResult = state[1];
+		var busy = React.useState(false);
+		var checking = busy[0]; var setChecking = busy[1];
+		var fail = React.useState("");
+		var error = fail[0]; var setError = fail[1];
+
+		function check() {
+			setChecking(true);
+			setError("");
+			fetch("/api/helmd/update").then(function (r) { return r.json(); }).then(function (j) {
+				if (j && j.ok) {
+					setResult(j.data);
+					if (j.data && j.data.error) setError(j.data.error);
+				} else {
+					setError((j && j.error) || "检查失败");
+				}
+			}).catch(function (e) {
+				setError(String((e && e.message) || e));
+			}).then(function () { setChecking(false); });
+		}
+
+		var version = String((result && result.currentVersion) || props.version || "unknown").replace(/^v/i, "");
+		var latest = result && result.latestVersion ? String(result.latestVersion).replace(/^v/i, "") : "";
+		var linkStyle = { color: "var(--dsw-alias-state-business-primary)", textDecoration: "none" };
+		var codeStyle = {
+			margin: "8px 0 0", padding: "10px 12px",
+			borderRadius: "var(--dsw-radius-sm)",
+			background: "var(--dsw-alias-markdown-code-block)",
+			border: "0.5px solid var(--dsw-alias-border-l1)",
+			fontFamily: CODE, fontSize: 11, lineHeight: "17px",
+			color: "var(--dsw-alias-label-secondary)", overflowX: "auto",
+		};
+		var fallbackChanges = [
+			"破甲档位热切换：core / stealth / redteam-max，下一次模型调用生效",
+			"工作台改为破甲 / Case / 拦截 / 关于，对齐 DSH 原生样式",
+			"工具数 33；移除 find_tool 与静态工具目录",
+			"星标浮层迁入 shell.overlay，不再写 document.body",
+		];
+		var changes = result && Array.isArray(result.releaseNotes) && result.releaseNotes.length > 0
+			? result.releaseNotes
+			: fallbackChanges;
+		var disclaimer = "仅供学习交流与授权安全评估。使用者须自行确保所有操作均在本人拥有的资产或已获得书面授权的范围内进行。未经授权对他人系统进行扫描、探测或入侵属于违法行为。本项目按 MIT “原样”提供，不附带任何担保。部分代码由 AI 辅助生成，使用前请自行审查。";
+
+		return h("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+			h("div", { style: S.card },
+				h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 } },
+					h("div", { style: { display: "flex", alignItems: "baseline", gap: 6 } },
+						h("span", { style: S.title }, "关于"),
+						h("span", { style: S.caption }, "helmd")
+					),
+					h("button", {
+						type: "button", className: "hm-btn", disabled: checking, onClick: check,
+						style: {
+							height: 28, padding: "0 10px", borderRadius: "var(--dsw-radius-sm)",
+							border: "0.5px solid var(--dsw-alias-border-l3)", background: "transparent",
+							color: "var(--dsw-alias-label-primary)", fontSize: 12, fontFamily: "inherit",
+							cursor: checking ? "default" : "pointer",
+						},
+					}, checking ? "检查中…" : "检查更新")
+				),
+				h("div", { style: { marginTop: 6, fontSize: 12, color: "var(--dsw-alias-label-secondary)" } },
+					"当前版本 ", h("span", { style: { fontFamily: CODE } }, "v" + version)
+				),
+				result && latest
+					? h("div", { style: { marginTop: 4, fontSize: 12, color: result.updateAvailable ? "var(--dsw-alias-state-warn-primary)" : "var(--dsw-alias-state-success-primary)" } },
+						result.updateAvailable
+							? "远端版本 v" + latest + " · 当前 v" + version
+							: "已是最新版本 v" + version
+					)
+					: h("div", { style: { marginTop: 4, fontSize: 11, color: "var(--dsw-alias-label-tertiary)" } },
+						"检查 GitHub Releases 的远端版本"
+					),
+				error ? h("div", { style: { marginTop: 4, fontSize: 11, color: "var(--dsw-alias-state-error-primary)", wordBreak: "break-word" } },
+					"检查失败：" + error
+				) : null,
+				result && latest && result.updateAvailable
+					? h("div", { style: { marginTop: 4, fontSize: 12 } },
+						h("a", { href: result.releaseUrl || "https://github.com/ADWMC/helm-d/releases/latest", target: "_blank", rel: "noopener noreferrer", style: linkStyle }, "打开 Releases")
+					)
+					: null,
+				h("div", { style: { marginTop: 6, fontSize: 12, color: "var(--dsw-alias-label-secondary)" } },
+					"作者 ",
+					h("a", { href: "https://github.com/ADWMC", target: "_blank", rel: "noopener noreferrer", style: linkStyle }, "ADWMC"),
+					" · ",
+					h("a", { href: "https://github.com/ADWMC/helm-d", target: "_blank", rel: "noopener noreferrer", style: linkStyle }, "ADWMC/helm-d")
+				)
 			),
 			h("div", { style: S.card },
-				h("div", { style: Object.assign({ fontFamily: MONO }, { fontSize: 11, color: "var(--dsw-alias-label-secondary, #bbb)", maxHeight: 200, overflowY: "auto" }) },
-					h("div", { style: { color: "var(--dsw-alias-state-success-primary)" } }, "[STREAM-OK] 拦截器已上线 · 拦截 " + ((props.interceptData && props.interceptData.count) || 0) + " 次"),
-					h("div", null, "[AUDIT] 日志: ~/.dsh/helmd-stream-intercept.log"),
+				h("div", { style: S.title }, "更新地址"),
+				h("div", { style: Object.assign({}, S.body, { marginTop: 4 }) },
+					h("a", { href: "https://github.com/ADWMC/helm-d/releases/latest", target: "_blank", rel: "noopener noreferrer", style: linkStyle }, "github.com/ADWMC/helm-d/releases/latest")
+				),
+				h("pre", { style: codeStyle }, "dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/latest/download/helm-d.tgz"),
+				h("div", { style: Object.assign({}, S.caption, { marginTop: 6 }) }, "仓库内也可用 scripts/update.ps1（Windows）或 scripts/update.sh（macOS / Linux）")
+			),
+				h("div", { style: S.card },
+					h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" } },
+						h("div", { style: { display: "flex", alignItems: "baseline", gap: 6 } },
+							h("span", { style: S.title }, "更新日志"),
+							h("span", { style: S.caption }, result && latest ? "Releases v" + latest : "内置摘要")
+						),
+						h("a", { href: "https://github.com/ADWMC/helm-d/blob/main/CHANGELOG.md", target: "_blank", rel: "noopener noreferrer", style: Object.assign({}, S.caption, linkStyle) }, "完整日志")
+					),
+				h("div", { style: { display: "flex", flexDirection: "column", gap: 4, marginTop: 8 } },
+					changes.map(function (line) {
+						return h("div", { key: line, style: { fontSize: 12, lineHeight: "18px", color: "var(--dsw-alias-label-secondary)" } }, "· " + line);
+					})
 				)
+			),
+			h("div", { style: S.card },
+				h("div", { style: S.title }, "免责声明"),
+				h("div", { style: Object.assign({}, S.body, { marginTop: 4, fontSize: 12, lineHeight: "18px" }) }, disclaimer)
 			)
 		);
 	}
@@ -683,87 +813,166 @@ exports.apply = function apply(ctx) {
 		// Dynamic data fetching (polled from host API routes)
 		var apiData = React.useState({});
 		var data = apiData[0]; var setData = apiData[1];
+		var reload = React.useState(0);
+		var reloadTick = reload[0]; var setReloadTick = reload[1];
 		React.useEffect(function () {
 			var alive = true;
 			function poll() {
 				Promise.all([
 					fetch('/api/helmd/tools').then(function(r){return r.json()}).catch(function(){return null}),
-					fetch('/api/helmd/eval').then(function(r){return r.json()}).catch(function(){return null}),
 					fetch('/api/helmd/intercept').then(function(r){return r.json()}).catch(function(){return null}),
 					fetch('/api/helmd/health').then(function(r){return r.json()}).catch(function(){return null}),
+					fetch('/api/helmd/case').then(function(r){return r.json()}).catch(function(){return null}),
+					fetch('/api/helmd/profile').then(function(r){return r.json()}).catch(function(){return null}),
+					fetch('/api/helmd/case/findings').then(function(r){return r.json()}).catch(function(){return null}),
+					fetch('/api/helmd/case/evidence').then(function(r){return r.json()}).catch(function(){return null}),
 				]).then(function(results) {
 					if (!alive) return;
 					setData({
 						tools: (results[0] && results[0].data) || [],
-						eval: (results[1] && results[1].data) || null,
-						intercept: (results[2] && results[2].data) || null,
-						health: (results[3] && results[3].data) || null,
+						intercept: (results[1] && results[1].data) || null,
+						health: (results[2] && results[2].data) || null,
+						caseData: (results[3] && results[3].data) || null,
+						profile: (results[4] && results[4].data) || null,
+						findings: (results[5] && results[5].data) || [],
+						evidence: (results[6] && results[6].data) || [],
 					});
 				});
 			}
 			poll();
 			var timer = setInterval(poll, 15000);
 			return function() { alive = false; clearInterval(timer); };
-		}, []);
-		var active = React.useState("tools");
+		}, [reloadTick]);
+		function refresh() { setReloadTick(function (n) { return n + 1; }); }
+		var active = React.useState("profile");
 		var tab = active[0]; var setTab = active[1];
+		React.useEffect(function () { if (tab === "case") refresh(); }, [tab]);
+		var switching = React.useState(false);
+		var isSwitching = switching[0]; var setSwitching = switching[1];
+		var profileError = React.useState("");
+		var profileErr = profileError[0]; var setProfileErr = profileError[1];
 
-		var tabs = [
-			{ key: "tools", label: "Tool Shelf" },
-			{ key: "attacks", label: "Model Evaluation" },
-			{ key: "intercept", label: "Intercept Log" },
-		];
-
-		function tabButtonStyle(key) {
-			var isCurrent = tab === key;
-			return {
-				padding: "6px 12px",
-				fontSize: 12,
-				fontWeight: isCurrent ? 600 : 400,
-				cursor: "pointer",
-				border: 0,
-				borderBottom: isCurrent ? "2px solid var(--dsw-alias-state-success-primary, #10b981)" : "2px solid transparent",
-				background: "transparent",
-				color: isCurrent ? "var(--dsw-alias-label-primary, #fff)" : "var(--dsw-alias-label-secondary, #888)",
-				transition: "all 0.15s ease",
-			};
+		function switchTo(id) {
+			setSwitching(true);
+			setProfileErr("");
+			fetch('/api/helmd/profile', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ id: id }),
+			})
+				.then(function (r) { return r.json(); })
+				.then(function (res) {
+					if (res && res.ok) {
+						setData(function (prev) { return Object.assign({}, prev, { profile: res.data }); });
+					} else {
+						setProfileErr((res && res.error) || "切换失败");
+					}
+				})
+				.catch(function (e) { setProfileErr(String((e && e.message) || e)); })
+				.then(function () { setSwitching(false); });
 		}
 
+		var tabs = [
+			{ key: "profile", label: "破甲", badge: 0 },
+			{ key: "case", label: "Case", badge: (data.caseData && data.caseData.active && data.caseData.openHypotheses) || 0 },
+			{ key: "intercept", label: "拦截", badge: (data.intercept && data.intercept.count) || 0 },
+			{ key: "about", label: "关于", badge: 0 },
+		];
+
+		var openCase = data.caseData && data.caseData.active ? (data.caseData.openHypotheses || 0) : null;
+		var toolCount = (data.tools && data.tools.length) || 0;
+		var liveProfile = (data.profile && data.profile.activeId) || "core";
+
 		return h("div", {
+			className: "helmd-workbench",
 			style: {
 				display: "flex", flexDirection: "column", height: "100%",
-				background: "var(--dsw-alias-bg-layer-1, #121214)",
-				color: "var(--dsw-alias-label-primary, #eee)", boxSizing: "border-box",
+				background: "var(--dsw-alias-bg-base)",
+				color: "var(--dsw-alias-label-primary)", boxSizing: "border-box",
 			},
 		},
-			h("div", { style: { padding: "12px 14px 0", borderBottom: "0.5px solid var(--dsw-alias-border-l2, rgba(255,255,255,0.08))", background: "var(--dsw-alias-bg-layer-2, #18181b)" } },
-				h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 } },
-					h("div", { style: { display: "flex", alignItems: "center", gap: 6 } },
-						h(IconAgentPreset, { size: 16, style: { color: "var(--dsw-alias-state-success-primary, #10b981)" } }),
-						h("span", { style: { fontSize: 13, fontWeight: 600 } }, "helmd 工作台"),
+			h("style", null, WORKBENCH_CSS),
+			h("div", {
+				style: {
+					padding: "12px 12px 0",
+					borderBottom: "0.5px solid var(--dsw-alias-border-l2)",
+				},
+			},
+				h("div", { style: { display: "flex", alignItems: "flex-start", gap: 8 } },
+					h("div", { style: { flex: 1, minWidth: 0 } },
+						h("div", { style: { display: "flex", alignItems: "baseline", gap: 6 } },
+							h("span", { style: { fontSize: 14, fontWeight: 600 } }, "安全分析"),
+							h("span", { style: { fontSize: 11, color: TONE.muted } }, (data.health && data.health.version) || "dev")
+						),
+						h("div", { style: { marginTop: 2, fontSize: 12, color: TONE.muted } },
+							liveProfile + " · " + toolCount + " 个工具"
+							+ (openCase === null ? "" : " · " + openCase + " 个未决假设")
+						)
 					),
-					h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
-						h("span", { style: { fontSize: 11, padding: "1px 6px", borderRadius: 999, background: "rgba(16,185,129,0.15)", color: "var(--dsw-alias-state-success-primary, #34d399)", border: "1px solid rgba(16,185,129,0.3)" } }, (data.health && data.health.version) || "?"),
-						props.onClose ? h("button", { type: "button", onClick: props.onClose, "aria-label": "关闭", style: { border: 0, background: "transparent", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", borderRadius: 4, color: "var(--dsw-alias-label-tertiary, #888)" } }, h(CloseIcon, null)) : null,
-					)
+					props.onClose ? h("button", {
+						type: "button", onClick: props.onClose, "aria-label": "关闭", className: "hm-btn",
+						style: {
+							width: 28, height: 28, borderRadius: "var(--dsw-radius-sm)", border: "none",
+							background: "transparent", color: "var(--dsw-alias-label-secondary)",
+							cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 6,
+						},
+					}, h(CloseIcon, null)) : null
 				),
-				h("div", { style: { display: "flex", gap: 4 } },
+				h("div", { style: { display: "flex", gap: 18, marginTop: 10 } },
 					tabs.map(function (t) {
-						return h("button", { key: t.key, type: "button", style: tabButtonStyle(t.key), onClick: function () { setTab(t.key); } }, t.label);
+						var current = tab === t.key;
+						return h("button", {
+							key: t.key, type: "button", className: "hm-tab",
+							onClick: function () { setTab(t.key); },
+							style: {
+								position: "relative", padding: "7px 1px 9px",
+								border: 0, background: "none",
+								fontSize: 13, lineHeight: "20px", fontWeight: 400,
+								color: current
+									? "var(--dsw-alias-label-primary)"
+									: "var(--dsw-alias-label-tertiary)",
+								cursor: "pointer",
+							},
+						},
+							t.label,
+							t.badge ? h("span", {
+								style: {
+									marginLeft: 4, fontSize: 11, color: "var(--dsw-alias-label-tertiary)",
+									fontVariantNumeric: "tabular-nums",
+								},
+							}, String(t.badge)) : null,
+							current ? h("span", {
+								"aria-hidden": "true",
+								style: {
+									position: "absolute", left: 0, right: 0, bottom: -1, height: 2,
+									borderRadius: "2px 2px 0 0",
+									background: "var(--dsw-alias-label-primary)",
+								},
+							}) : null
+						);
 					})
-				),
+				)
 			),
-			h("div", { style: { flex: 1, overflowY: "auto", padding: 14, fontSize: 12, lineHeight: 1.5 } },
-				tab === "tools" ? h(ToolShelfTab, Object.assign({}, props, { registeredTools: data.tools })) : null,
-				tab === "attacks" ? h(AttackLogTab, { evalData: data.eval }) : null,
-				tab === "intercept" ? h(InterceptTab, { interceptData: data.intercept }) : null,
+			h("div", {
+				className: "hm-scroll",
+				style: { flex: 1, overflowY: "auto", padding: 12 },
+			},
+				h("div", {
+					key: tab, className: "hm-fade",
+					style: { display: "flex", flexDirection: "column", gap: 10 },
+				},
+					tab === "profile" ? h(ProfileTab, { profileData: data.profile, onSwitch: switchTo, switching: isSwitching, error: profileErr }) : null,
+					tab === "case" ? h(CaseTab, { caseData: data.caseData, findings: data.findings, evidence: data.evidence, onRefresh: refresh }) : null,
+					tab === "intercept" ? h(InterceptTab, { interceptData: data.intercept }) : null,
+					tab === "about" ? h(AboutTab, { version: (data.health && data.health.version) || "unknown" }) : null
+				)
 			)
 		);
 	}
 
 	function HelmdTabTitle() {
 		return h("div", { style: { display: "flex", alignItems: "center", gap: 5 } },
-			h(IconAgentPreset, { size: 12, style: { color: "var(--dsw-alias-state-success-primary, #10b981)" } }),
+			h(IconAgentPreset, { size: 12, style: { color: "var(--dsw-alias-state-success-primary)" } }),
 			h("span", null, "helmd 工作台"),
 		);
 	}
@@ -774,7 +983,7 @@ exports.apply = function apply(ctx) {
 				id: "helm-d:eval",
 				kind: "eval",
 				title: () => "helmd 工作台",
-					guide: [{ order: 20, title: () => "helmd 工作台", description: () => "分类工具货架 / 模型评测 / 拦截日志" }],
+					guide: [{ id: "helmd", order: 20, title: () => "helmd 工作台", description: () => "破甲档位 / Case / 拦截日志" }],
 			});
 		}, "helmd: sidebar tab definition");
 	}
@@ -788,102 +997,187 @@ exports.apply = function apply(ctx) {
 		yield ctx.slots.register({ name: "sidebar.right.pane.tab.title", key: "helm-d:eval" }, HelmdTabTitle);
 		yield ctx.slots.register({ name: "sidebar.right.pane.tab.title", key: "eval" }, HelmdTabTitle);
 	});
-};
 
+	// ── Star gate overlay (shell.overlay slot, no document.body writes) ──
+	function HelmdGatePanel() {
+		var state = React.useState(null);
+		var status = state[0]; var setStatus = state[1];
+		var openState = React.useState(false);
+		var expanded = openState[0]; var setExpanded = openState[1];
+		var copyState = React.useState(false);
+		var copied = copyState[0]; var setCopied = copyState[1];
+		var readyState = React.useState(false);
+		var isReady = readyState[0]; var setReady = readyState[1];
 
-// ── helm-d star gate panel ────────────────────────────────────────────────
-// Floating gate card (vanilla DOM, outside the React root). Polls the gate
-// status; when gating, shows the device code + links + a skip-for-this-launch
-// button. Hides itself once unlocked or skipped.
-;(function () {
-	try {
-		var PANEL_ID = "helm-d-gate-panel";
-		var STYLE_ID = "helm-d-gate-style";
-		var pollTimer = null;
-
-		function existing() { return document.getElementById(PANEL_ID); }
-
-		function hide() {
-			var el = existing();
-			if (el) el.style.display = "none";
-			if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-		}
-
-		function render(status) {
-			var el = existing();
-			if (!el) {
-				var style = document.createElement("style");
-				style.id = STYLE_ID;
-				style.textContent = [
-					"#" + PANEL_ID + "{position:fixed;top:16px;right:16px;z-index:99999;",
-					"width:340px;background:#16181d;color:#e8eaed;",
-					"border:1px solid #c46a1f;border-radius:10px;",
-					"padding:16px;font-family:inherit;font-size:13px;line-height:1.5;",
-					"box-shadow:0 8px 24px rgba(0,0,0,.4)}",
-					"#" + PANEL_ID + " .hg-title{font-weight:700;font-size:14px;margin:0 0 8px;color:#ffffff}",
-					"#" + PANEL_ID + " .hg-code{font-family:" + MONO + ";font-size:20px;letter-spacing:2px;",
-					"background:#0d0f12;color:#ffd27d;padding:8px 12px;border-radius:6px;",
-					"text-align:center;margin:8px 0;cursor:pointer}",
-					"#" + PANEL_ID + " .hg-row{display:flex;gap:8px;margin:10px 0}",
-					"#" + PANEL_ID + " a{color:#6cb6ff;text-decoration:none}",
-					"#" + PANEL_ID + " button{flex:1;padding:6px 10px;border-radius:6px;border:1px solid #3a3f47;",
-					"background:#22262d;color:#e8eaed;cursor:pointer;font-size:12px}",
-					"#" + PANEL_ID + " button:hover{border-color:#2ea36b}",
-					"#" + PANEL_ID + " .hg-skip{opacity:.7;font-size:11px}",
-				].join("");
-				document.head.appendChild(style);
-				el = document.createElement("div");
-				el.id = PANEL_ID;
-				el.innerHTML = [
-					'<div class="hg-title">helm-d · 完成一次性校验以解锁</div>',
-					'<div style="margin:6px 0">1. 打开 <a href="https://github.com/login/device" target="_blank" rel="noopener">github.com/login/device</a></div>',
-					'<div style="margin:6px 0">2. 输入代码：<span class="hg-code" id="hg-code">…</span> <span style="opacity:.6">(点击复制)</span></div>',
-					'<div style="margin:6px 0">3. 授权后给 <a href="https://github.com/ADWMC/helm-d" target="_blank" rel="noopener">ADWMC/helm-d</a> 点一个 Star</div>',
-					'<div class="hg-actions" style="display:flex;gap:8px;margin-top:10px">',
-					'  <button id="hg-refresh" style="flex:1">我已完成，刷新状态</button>',
-					'</div>',
-					'<div style="text-align:right;margin-top:6px"><button id="hg-skip" class="hg-skip" style="background:none;border:none;color:inherit;opacity:.6;text-decoration:underline">跳过本次启动 →</button></div>',
-					'<div id="hg-status" style="margin-top:6px;font-size:11px;opacity:.7"></div>',
-				].join("");
-				document.body.appendChild(el);
-				el.querySelector("#hg-code").addEventListener("click", function () {
-					var range = document.createRange(); range.selectNodeContents(this);
-					var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
-					document.execCommand("copy");
-				}.bind(el.querySelector("#hg-code")));
-				el.querySelector("#hg-refresh").addEventListener("click", poll);
-				el.querySelector("#hg-skip").addEventListener("click", function () {
-					fetch("/api/helmd/gate/skip").then(hide).catch(function () { hide(); });
-				});
+		React.useEffect(function () {
+			var alive = true;
+			var timer = null;
+			function poll() {
+				fetch("/api/helmd/gate").then(function (r) { return r.json(); }).then(function (j) {
+					if (alive && j && j.ok) setStatus(j.data);
+				}).catch(function () {});
 			}
-			el.style.display = "block";
-			var st = el.querySelector("#hg-status");
-			if (status.error) {
-				st.textContent = "状态：出错 — " + status.error + "（下次轮询自动重试）";
-				st.style.color = "#ff6b6b";
-			} else {
-				st.textContent = "状态：" + (status.userCode ? "等待授权（代码 " + status.userCode + "）" : "生成中…");
-				st.style.color = "";
-			}
-			el.querySelector("#hg-code").textContent = status.userCode || "…";
-		}
+			poll();
+			timer = setInterval(poll, 5000);
+			return function () { alive = false; clearInterval(timer); };
+		}, []);
+		// Do not cover the app before the operator has done anything; the CLI
+		// code channel still exists from boot.
+		React.useEffect(function () {
+			var delay = setTimeout(function () { setReady(true); }, 8000);
+			return function () { clearTimeout(delay); };
+		}, []);
 
-		function poll() {
+		if (!status || !status.gating || !isReady) return null;
+
+		function copyCode() {
+			var code = status.userCode || "";
+			if (!code) return;
+			try {
+				if (navigator.clipboard && navigator.clipboard.writeText) {
+					navigator.clipboard.writeText(code).then(function () {
+						setCopied(true);
+						setTimeout(function () { setCopied(false); }, 1500);
+					}).catch(function () {});
+				}
+			} catch (e) { /* clipboard is best-effort */ }
+		}
+		function readStatus() {
 			fetch("/api/helmd/gate").then(function (r) { return r.json(); }).then(function (j) {
-				var d = (j && j.ok) ? j.data : null;
-				if (!d) return;
-				if (d.gating) render(d);
-				else hide();
-			}).catch(function () { /* transient */ });
+				if (j && j.ok) setStatus(j.data);
+			}).catch(function () {});
 		}
+		function skip() {
+			fetch("/api/helmd/gate/skip").then(function () { setStatus(null); }).catch(function () { setStatus(null); });
+		}
+		function retry() {
+			fetch("/api/helmd/gate/retry").then(function (r) { return r.json(); }).then(function (j) {
+				if (j && j.ok) setStatus(j.data);
+			}).catch(function () {});
+		}
+		var primary = {
+			display: "inline-flex", alignItems: "center", justifyContent: "center",
+			height: 28, padding: "0 12px", borderRadius: "var(--dsw-radius-sm)",
+			border: "0.5px solid transparent",
+			background: "var(--dsw-alias-button-primary-fill)",
+			color: "var(--dsw-alias-label-primary-foreground)",
+			fontSize: 12, fontWeight: 500, fontFamily: "inherit", cursor: "pointer",
+			textDecoration: "none",
+		};
+		var secondary = {
+			display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4,
+			height: 28, padding: "0 10px", borderRadius: "var(--dsw-radius-sm)",
+			border: "0.5px solid var(--dsw-alias-border-l3)", background: "transparent",
+			color: "var(--dsw-alias-label-primary)", fontSize: 12, fontFamily: "inherit", cursor: "pointer",
+		};
+		var repoUrl = "https://github.com/" + (status.repo || "ADWMC/helm-d");
+		var held = status.hold === "authorized-unstarred";
 
-		if (document.readyState === "loading") {
-			document.addEventListener("DOMContentLoaded", function () { poll(); pollTimer = setInterval(poll, 5000); });
-		} else {
-			poll(); pollTimer = setInterval(poll, 5000);
-		}
-	} catch (e) { /* gate panel is best-effort */ }
-})();
+		return h("div", {
+			role: "dialog", "aria-label": "支持 helm-d",
+			style: {
+				position: "fixed", top: 16, right: 16, zIndex: 1000, width: 340,
+				maxWidth: "calc(100vw - 32px)",
+				background: "var(--dsw-alias-bg-layer-2)", color: "var(--dsw-alias-label-primary)",
+				border: "0.5px solid var(--dsw-alias-border-l3)", borderRadius: "var(--dsw-radius-md)",
+				padding: "14px 16px", fontSize: 13, lineHeight: "20px",
+				boxShadow: "0 12px 32px rgba(0,0,0,.32)",
+			},
+		},
+			h("style", null, ".helmd-gate-btn{appearance:none;-webkit-appearance:none;color-scheme:inherit}.helmd-gate-btn:hover{background:var(--dsw-alias-interactive-bg-hover)}"),
+			h("div", { style: { display: "flex", alignItems: "flex-start", gap: 8 } },
+				h("div", { style: { flex: 1, minWidth: 0 } },
+					h("div", { style: { fontSize: 13, fontWeight: 600 } }, "支持 helm-d"),
+					h("div", { style: { marginTop: 2, fontSize: 12, color: "var(--dsw-alias-label-tertiary)" } }, "如果这个插件对你有用，给仓库点个 Star。不影响任何功能。")
+				),
+				h("button", {
+					type: "button", onClick: skip, className: "helmd-gate-btn", "aria-label": "本次不再提示",
+					style: {
+						width: 28, height: 28, flex: "none", display: "flex", alignItems: "center", justifyContent: "center",
+						padding: 6, border: 0, borderRadius: "var(--dsw-radius-sm)",
+						background: "transparent", color: "var(--dsw-alias-label-tertiary)", cursor: "pointer",
+					},
+				}, h(CloseIcon, null))
+			),
+			h("div", { style: { display: "flex", alignItems: "center", gap: 8, marginTop: 10 } },
+				h("a", { href: repoUrl, target: "_blank", rel: "noopener noreferrer", style: primary }, "打开仓库"),
+				h("button", {
+					type: "button", onClick: function () { setExpanded(!expanded); }, className: "helmd-gate-btn",
+					style: secondary, "aria-expanded": expanded,
+				}, "自动验证", h(ChevronIcon, { open: expanded }))
+			),
+			!expanded ? h("div", { style: { marginTop: 6, fontSize: 11, lineHeight: "16px", color: "var(--dsw-alias-label-tertiary)" } },
+				held
+					? "已授权但未检测到 Star；展开「自动验证」可重新验证。"
+					: "已手动 Star？点右下角「本次不再提示」即可。"
+			) : null,
+			expanded ? h("div", { style: { marginTop: 10, paddingTop: 10, borderTop: "0.5px solid var(--dsw-alias-border-l2)" } },
+				held
+					? h("div", null,
+						h("div", { style: { fontSize: 12, lineHeight: "18px", color: "var(--dsw-alias-label-secondary)" } },
+							"已授权，但 15 分钟内没有检测到 Star。确认已给仓库点 Star 后可以点「本次不再提示」；或重新验证（会生成新代码）。"
+						),
+						h("div", { style: { display: "flex", alignItems: "center", gap: 8, marginTop: 8 } },
+							h("button", { type: "button", onClick: retry, className: "helmd-gate-btn", style: Object.assign({ flex: 1 }, secondary) }, "重新验证"),
+							h("a", { href: repoUrl, target: "_blank", rel: "noopener noreferrer", style: primary }, "打开仓库")
+						)
+					)
+					: h("div", null,
+						h("div", { style: { fontSize: 12, color: "var(--dsw-alias-label-secondary)" } }, "打开 ",
+							h("a", {
+								href: status.verificationUri || "https://github.com/login/device",
+								target: "_blank", rel: "noopener noreferrer",
+								style: { color: "var(--dsw-alias-state-business-primary)" },
+							}, "github.com/login/device"),
+							"，输入下面的代码并授权。授权只用于确认 Star，令牌即弃。"
+						),
+						h("button", {
+							type: "button", onClick: copyCode, className: "helmd-gate-btn",
+							style: {
+								display: "block", width: "100%", margin: "8px 0 6px", padding: "10px 12px",
+								fontFamily: "var(--ds-font-family-code)", fontSize: 18, letterSpacing: 2, textAlign: "center",
+								background: "var(--dsw-alias-markdown-code-block)", color: "var(--dsw-alias-label-primary)",
+								borderRadius: "var(--dsw-radius-sm)", border: 0, cursor: "pointer",
+							},
+						}, copied ? "已复制" : (status.userCode || "生成中…")),
+						h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+							h("button", { type: "button", onClick: readStatus, className: "helmd-gate-btn", style: Object.assign({ flex: 1 }, secondary) }, "我已完成，刷新状态")
+						)
+					),
+				status.error ? h("div", {
+					style: { marginTop: 6, fontSize: 11, color: "var(--dsw-alias-state-error-primary)", wordBreak: "break-word" },
+				}, "校验失败：" + status.error + "（稍后自动重试）") : null
+			) : null,
+			status.error && !expanded ? h("div", {
+				style: { marginTop: 6, fontSize: 11, lineHeight: "16px", color: "var(--dsw-alias-state-error-primary)", wordBreak: "break-word" },
+			}, "自动验证暂不可用：" + status.error + "（稍后自动重试）") : null,
+			h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 8 } },
+				h("div", { style: { fontSize: 11, lineHeight: "16px", color: "var(--dsw-alias-label-tertiary)" } },
+					"遇到问题？ ",
+					h("a", {
+						href: "https://github.com/ADWMC/helm-d/blob/main/docs/star-gate-help.md",
+						target: "_blank", rel: "noopener noreferrer",
+						style: { color: "var(--dsw-alias-state-business-primary)", textDecoration: "none" },
+					}, "查看帮助"),
+					" · ",
+					h("a", {
+						href: "https://github.com/ADWMC/helm-d/issues/new",
+						target: "_blank", rel: "noopener noreferrer",
+						style: { color: "var(--dsw-alias-state-business-primary)", textDecoration: "none" },
+					}, "提交 Issue")
+				),
+				h("button", {
+					type: "button", onClick: skip, className: "helmd-gate-btn",
+					style: { background: "none", border: 0, color: "var(--dsw-alias-label-tertiary)", fontSize: 11, cursor: "pointer", textDecoration: "underline", whiteSpace: "nowrap" },
+				}, "本次不再提示")
+			)
+		);
+	}
+
+	ctx.slots.inject("shell.overlay", function* () {
+		yield ctx.slots.register({ name: "shell.overlay", id: "helm-d:gate", order: 90 }, HelmdGatePanel);
+	});
+};
 return module.exports;
 } });
 

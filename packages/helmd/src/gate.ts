@@ -12,6 +12,7 @@ import { homedir } from 'node:os'
 import { dirname, join, normalize } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
 import { boostBody, profileBody } from './catalog.js'
+import { getActiveProfileId, profileStatus, setActiveProfileId, type ProfileStatus } from './profile.js'
 import { startDeviceFlow, verifyStar, type DeviceSession } from './star-gate.js'
 
 const REPO = 'ADWMC/helm-d'
@@ -40,6 +41,17 @@ let pollAbort: AbortController | undefined
 let pollGeneration = 0
 let launchSkipped = false
 let lastFlowError: string | undefined
+let flowFailures = 0
+let nextFlowAt = 0
+/** Token was obtained but the star watch ended without a star. Hold here
+ *  instead of issuing a fresh device code on the next poll. */
+let hold: 'authorized-unstarred' | undefined
+
+// Persona section lifecycle. The disposer is what makes the profile switch hot:
+// disposing and re-registering under the same name emits `system-prompt/change`,
+// so the next assembly sees the new body without a host restart.
+let personaCtx: Context | undefined
+let personaDispose: (() => void) | undefined
 
 /** Operator chose to dismiss the popup for THIS instance launch
  *  (memory-only). The persona is untouched; the background device-flow
@@ -49,6 +61,9 @@ export function skipThisLaunch(): void {
   pollAbort?.abort()
   activeSession = undefined
   lastFlowError = undefined
+  flowFailures = 0
+  nextFlowAt = 0
+  hold = undefined
   clearAnnouncement()
 }
 
@@ -62,7 +77,7 @@ export function gateStatus(): Record<string, unknown> {
   const state = readState()
   // Re-issue the device session when it expired — the panel poll is the
   // heartbeat; without this the panel sticks at "生成中…" after expiry.
-  if (!isUnlocked() && !launchSkipped &&
+  if (!isUnlocked() && !launchSkipped && hold === undefined &&
       (activeSession === undefined || Date.now() >= activeSession.expiresAt)) {
     ensureFlow()
   }
@@ -76,7 +91,22 @@ export function gateStatus(): Record<string, unknown> {
     verificationUri: activeSession?.verificationUri ?? 'https://github.com/login/device',
     repo: REPO,
     error: lastFlowError,
+    hold: hold,
+    retryAt: nextFlowAt > Date.now() ? new Date(nextFlowAt).toISOString() : undefined,
   }
+}
+
+/** Operator explicitly asks for a fresh device code after a hold or an error
+ *  backoff. Clears the skip flag so the panel can reappear. */
+export function retryFlow(): Record<string, unknown> {
+  hold = undefined
+  launchSkipped = false
+  lastFlowError = undefined
+  flowFailures = 0
+  nextFlowAt = 0
+  activeSession = undefined
+  pollAbort?.abort()
+  return gateStatus()
 }
 
 /** $DSH_HOME (or ~/.dsh) + storages/helmd/gate-state.json. */
@@ -140,8 +170,17 @@ export function isUnlocked(): boolean {
 /** Replace the persona block inside a prompt string with the gate notice. */
 
 
-/** Background device-flow runner: one session at a time, bounded poll loop. */
+/** Exponential backoff for device-flow failures: 30s, 60s, 120s, 240s, then 5min. */
+export function backoffMs(failures: number): number {
+  return Math.min(30_000 * Math.pow(2, Math.max(0, failures - 1)), 5 * 60_000)
+}
+
+/** Background device-flow runner: one session at a time, bounded poll loop.
+ *  Network failures back off (30s → 60s → 120s → 240s → 5min); an authorized
+ *  session that never saw a star holds instead of issuing a fresh code. */
 function ensureFlow(): void {
+  if (hold !== undefined) return
+  if (Date.now() < nextFlowAt) return
   if (activeSession !== undefined && Date.now() < activeSession.expiresAt) return
   pollAbort?.abort()
   const generation = ++pollGeneration
@@ -152,6 +191,8 @@ function ensureFlow(): void {
       const session = await startDeviceFlow()
       activeSession = session
       lastFlowError = undefined
+      flowFailures = 0
+      nextFlowAt = 0
       if (generation === pollGeneration) announceSession(session)
       // Star watch: the moment the star lands, persist state — the web panel
       // picks it up on its next poll and disappears. No prompt swap involved.
@@ -163,30 +204,73 @@ function ensureFlow(): void {
       if (generation !== pollGeneration) return
       writeState(state)
       activeSession = undefined
-      if (state.starred) clearAnnouncement()
-    } catch (error) {
-      // Expired/cancelled/skipped: clear so the next ensureFlow() re-issues.
-      if (generation === pollGeneration) {
-        activeSession = undefined
+      if (state.starred) {
+        hold = undefined
+        clearAnnouncement()
+      } else {
+        // Authorized but no star within the watch window. Hold the panel in an
+        // explanatory state; a new code only comes from an explicit retry.
+        hold = 'authorized-unstarred'
         clearAnnouncement()
       }
+    } catch (error) {
+      if (generation !== pollGeneration) return
+      // Expired/cancelled/skipped: clear so a later poll can re-issue.
+      activeSession = undefined
+      clearAnnouncement()
       const msg = error instanceof Error ? error.message : String(error)
       if (msg !== 'aborted') {
         lastFlowError = msg
+        flowFailures += 1
+        nextFlowAt = Date.now() + backoffMs(flowFailures)
         console.warn('[helmd] gate: device flow ended:', msg)
       }
     }
   })()
 }
 
+/** Install the persona section and keep its disposer for hot swapping.
+ *  The persona is NEVER gated: the active profile body loads unconditionally. */
+export function installPersona(ctx: Context): void {
+  personaCtx = ctx
+  try {
+    personaDispose = applyPersonaSection(ctx, profileBody(getActiveProfileId()) ?? '')
+  } catch (error) {
+    personaDispose = undefined
+    console.warn('[helmd] gate: persona section registration failed:', error instanceof Error ? error.message : error)
+  }
+}
+
+/** Operator hot-switch: persist the choice and replace the live persona section.
+ *  Register/dispose are synchronous, so no assembly can observe a gap between
+ *  them — both happen inside one event-loop turn. A failed swap restores the
+ *  previous body instead of leaving the session without a persona. */
+export function switchProfile(id: string): ProfileStatus {
+  const previous = getActiveProfileId()
+  const next = profileBody(id)
+  if (next === undefined) {
+    const known = profileStatus().profiles.map((p) => p.id).join(', ')
+    throw new Error(`unknown profile "${id}" (known: ${known})`)
+  }
+  setActiveProfileId(id)
+  if (personaCtx === undefined || personaDispose === undefined) return profileStatus()
+  try {
+    personaDispose()
+    personaDispose = applyPersonaSection(personaCtx, next)
+  } catch (error) {
+    personaDispose = undefined
+    setActiveProfileId(previous)
+    try { personaDispose = applyPersonaSection(personaCtx, profileBody(previous) ?? '') } catch { /* keep undefined */ }
+    throw error
+  }
+  return profileStatus()
+}
+
 /** Register the gate on the prompt-assembly waterfall.
  *  The persona section always carries the active profile body (v0.5.0 ruling:
  *  never gated). The device flow runs in the background for the web panel. */
 export function registerGate(ctx: Context): void {
-  // The persona is NEVER gated: the active profile body loads unconditionally.
-  try { applyPersonaSection(ctx, profileBody() ?? '') } catch (error) {
-    console.warn('[helmd] gate: persona section registration failed:', error instanceof Error ? error.message : error)
-  }
+  installPersona(ctx)
   // Tail override block (sealed boost.txt) — registered at the highest order
   // so it survives long contexts and multi-turn drift.
   try { applyBoostSection(ctx) } catch (error) {
@@ -200,8 +284,9 @@ export function registerGate(ctx: Context): void {
   ensureFlow()
 }
 
-/** Register the persona system-prompt section (shadows the preset persona row). */
-export function applyPersonaSection(ctx: Context, text: string): void {
+/** Register the persona system-prompt section (shadows the preset persona row).
+ *  @returns the host's disposer, which `switchProfile` uses to swap the body. */
+export function applyPersonaSection(ctx: Context, text: string): () => void {
   const host = ctx as unknown as {
     systemPrompt?: {
       section(def: { name: string; order: number; text: string }): unknown
@@ -214,7 +299,8 @@ export function applyPersonaSection(ctx: Context, text: string): void {
   const order = typeof host.systemPrompt.getSectionOrder === 'function'
     ? host.systemPrompt.getSectionOrder('DEPLOYMENT_PERSONA_PREFIX')
     : PERSONA_SECTION_ORDER
-  host.systemPrompt.section({ name: PERSONA_SECTION_NAME, order, text })
+  const dispose = host.systemPrompt.section({ name: PERSONA_SECTION_NAME, order, text })
+  return typeof dispose === 'function' ? (dispose as () => void) : () => {}
 }
 
 /** Register the sealed tail override block at the highest order. */

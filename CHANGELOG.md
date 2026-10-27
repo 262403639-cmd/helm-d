@@ -4,6 +4,46 @@
 完整发布注记与资产见 [GitHub Releases](https://github.com/ADWMC/helm-d/releases)。
 官方QQ群：**213266664**
 
+
+## [Unreleased]
+
+## [0.5.2] — 2026-10-27（原生工作台 + L3/L4-lite 自主状态）
+
+本版把工作台收回 DSH 官方槽位（破甲 / Case / 拦截 / 关于），补齐模型侧 L3 自主状态包与 L4-lite 调度建议，收紧结论 `repro_cmd` 门禁，并加固 Star 流程；移除 `find_tool` 与模型评测后工具数为 33，检查集 19 项。分发形态不变：payload / references / profiles 全封印。
+
+- **修复安装包脚本缺失（P0-1）**：`build-sealed` 把 `scripts/**` 一并封进 `payload.dat`，首次导入解压到包内 `scripts/`；`apk_fingerprint` / `pcap_parse` / `triage_artifact` / `native_*` 等脚本型工具与 `health.autoHeal` 在压缩包安装下恢复可用。`verify-pack` 现在解封 `payload.dat` 断言脚本与真实入口存在，不再只给 WARN。封印布局没有 `persona.txt` 时，`gen-preset` 用激活标记完成 preset sanity
+
+- **新增开发文档**：`CONTRIBUTING.md`、`SECURITY.md`、`docs/development.md`
+- **新增评分文档**：`docs/design/REFERENCE-SCORING-AND-EXPANSION.md`（40+ 参考项目逐家评分，5 条最高价值机制扩充方案）
+- **新增总方案**：`docs/design/MASTER-PLAN-PRO-RE-PENTEST.md`（逆向 + 渗透专业操作链、调度、模型 profile；全内置、无外部 MCP）
+- **新增工程门禁**：`.github/workflows/ci.yml`（Ubuntu + Windows）、`.github/PULL_REQUEST_TEMPLATE.md`、`.editorconfig`、`.nvmrc`
+- **新增产物校验**：`scripts/verify-pack.mjs`；根脚本增加 `test` / `check` / `test:pack`
+- **编译门禁加严**：`noUnusedLocals` / `noUnusedParameters` / `noImplicitOverride` / `noFallthroughCasesInSwitch`
+- **包元数据**：`@adwmc/helm-d` 补 `license` / `repository` / `homepage` / `bugs` / `keywords`；`prepublishOnly` 发布门禁
+- **模型评测功能已删除**：`llm_probe` / `llm_eval_suite` / `model-probe.ts` / `/api/helmd/eval` 路由 / WebUI 评测面板全部移除
+
+### 运行时
+
+- **破甲档位热切换**：新增 `profile.ts`（`$DSH_HOME/storages/helmd/profile.json` 持久化）、`GET/POST /api/helmd/profile`、工作台「破甲」页。切换时 dispose 旧的 `helm-d:persona` section 并原地重注册，下一次模型调用生效，无需重启；未知 id 返回 400 且不动当前 section，重注册失败自动回滚旧档
+- **stealth / redteam-max 成为完整档位**：`build-profiles.mjs` 支持 `--- extends: core ---` overlay，封印 body = 完整 core + 模式规则；切换不再把 12 KB 人设替换成一行占位符
+- **首轮 shell 按平台选择**：`shellTools` 从 `['bash','pwsh']` 改为平台原生单个（Windows `pwsh`，其他 `bash`）。Linux 同时装了 pwsh 时不再因“两个 shell”触发 bootstrap 守卫而暴露全量目录
+- **工作台视觉重做（对齐 DSH 原生）**：按宿主 `settings` / `sidebar` 的 CSS module 规范重做——13px 正文、13px 下划线 tab + 2px 指示条、12px 卡片与 0.5px 边框、DSH 中性蓝灰 token（`bg-base` / `settings-card-*` / `markdown-code-block` / `label-*`）、等宽代码块；移除工业风导轨、斜纹、切角、水印与编号
+- **按 DSH 插件规范收敛**：星标浮层从 `document.body` 的 vanilla IIFE 改为 `shell.overlay` 槽内的 React 组件；工作台样式从常驻 `<head>` 改为面板内 `<style>`（卸载即移除）；面板只引用 `--dsw-alias-*` / `--ds-font-family-code` token，去掉了所有字面色值回退
+- **删除设置页健康卡片**：原注册槽位 `settings.plugin.item` 在 DSH 0.2.1 不存在（当前官方座位是 `settings.plugins.tab` / `plugins.item`），卡片不会渲染；健康判定仍由 `GET /api/helmd/health` 提供，开机自愈逻辑不变
+- **新增 UI 方案文档**：`docs/design/WEB-UI-PLAN.md`（四个 tab 的结构、token、官方 slot、交互、验收清单）
+- **删除工作台「工具」tab**：静态分类目录与实际注册表不一致（漏 19 个工具、混入宿主工具），且没有可执行动作；工作台改为破甲 / Case / 拦截三个 tab，默认破甲，标题栏保留实时工具计数
+- **删除 find_tool**：GitHub 搜索 + `TOOLS.md` 子串 grep 的薄包装，无超时、不走代理、无质量过滤，且与 shell（`gh`/`curl`）和 `tool_memory search` 重叠；工具数 34 → 33，外部工具检索改由模型走 shell
+- **工作台入口收敛**：胶囊优先打开右侧栏 helmd tab，不再同时弹浮层；只有 sidebar 服务不可用时才回退浮层，避免同一面板重复两份
+- **工作台新增「关于」tab**：作者、免责声明、更新地址、更新日志，以及按需“检查更新”——`GET /api/helmd/update` 先查 GitHub Releases、失败回退 npm registry，复用 star-gate 的代理传输；只在点击时请求，不轮询
+- **Case 流程补全**：工作台 Case 页新增“结论 / 证据”两块，切到该 tab 自动刷新并带手动刷新按钮；修复 `/api/helmd/case/evidence` 把 id 只取成 "E" 的错误；首轮 bootstrap 说明写入 persona（`begin_case` 在工具晋升后才出现）
+- **L3 自主状态包**：`case_status` 新增 `[autonomy]` 段——完整假设链、findings、evidence、dead ends、匹配 playbook、next action、warnings；模型恢复/下一步不用自己翻磁盘
+- **Playbook / trigger 接线**：`references/index.md` 暴露 playbooks；`route_task` 返回匹配 playbook；`case_status` 带 playbook 与 triggers 路径（建议，不是门禁）
+- **结论门禁收紧**：`record_finding` 必填 `repro_cmd`；DEEP 模式关案要求每条 finding 都有 repro；`record_hypothesis` / `update_hypothesis` / `tool_memory` 输出不再自动落成 evidence，减少证据噪声
+- **L4-lite 调度**：每次工具结果后按 case 状态提交 advisory next action（不 gate）；`tool_recommend` 的过期 `create_case` 提示改为 `begin_case`
+- **Star 流程加固**：设备流失败按 30s → 1 → 2 → 4 → 5 分钟退避，不再每 5 秒重试；授权后未检测到 Star 不再自动重发设备码，改为「已授权」保持态 + 显式「重新验证」；弹窗延迟 8 秒出现，手动 Star 路径加提示
+- **Star 弹窗帮助入口**：新增“遇到问题？查看帮助 / 提交 Issue”，设备流错误在收起状态也可见；新增 `docs/star-gate-help.md`（手动 Star、自动验证、代理、代码过期、重置等排查）
+- **Star 弹窗优化**：删除“完成校验以解锁”的误导文案（它并不 gate 功能），改为“支持 helm-d / 不影响任何功能”；主按钮直接打开仓库，“自动验证”默认收起；新增关闭按钮、复制反馈和“本次不再提示”
+
 ## [0.5.1fix] — 2026-10-24（star 请求彻底退出会话 + 代理传输 + 封包修复）
 
 - **会话内不再出现 star**：删除 `helmd_unlock` 工具。该工具名撞激活词 `helmd`，模型会把激活输入读成“查 star 门”，解锁后也仍常驻工具清单；现在插件不再注册任何与 star 相关的工具，工具总数回到 34

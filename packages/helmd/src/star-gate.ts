@@ -109,7 +109,7 @@ function resolveProxy(targetHost: string): URL | undefined {
 }
 
 // ── proxy-aware transport ─────────────────────────────────────────────────
-interface RawResponse {
+export interface RawResponse {
   status: number
   text: string
 }
@@ -161,7 +161,7 @@ function tunnelAgent(socket: TLSSocket): Agent {
   return agent
 }
 
-async function requestText(
+export async function requestText(
   url: string,
   init: { method: string; headers: Record<string, string>; body?: string },
 ): Promise<RawResponse> {

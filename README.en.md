@@ -53,7 +53,7 @@ One relay for 70+ models — Claude / Gemini / Codex / DeepSeek / Grok / Kimi / 
 
 ### Armor-piercing, all-in-one
 
-Reverse engineering, unpacking, license bypass and pentest workflows — Android · Web · Native · Protocol · Malware · AI-Security converge in a single preset, together with the evidence chain. Install once and all 34 tools are ready — no per-domain wiring.
+Reverse engineering, unpacking, license bypass and pentest workflows — Android · Web · Native · Protocol · Malware · AI-Security converge in a single preset, together with the evidence chain. Install once and all 33 tools are ready — no per-domain wiring.
 
 </td>
 <td width="50%">
@@ -76,7 +76,7 @@ Domain knowledge, rules, workflows and cases live in `references/` (362 docs) an
 
 ### First-turn tool anchoring
 
-The first top-level request only exposes shell + `read`; the full catalog of 34 tools opens after promotion. A text-only first reply can't trap the session — request two always sees the full catalog.
+The first top-level request only exposes shell + `read`; the full catalog of 33 tools opens after promotion. A text-only first reply can't trap the session — request two always sees the full catalog.
 
 On Windows, the native terminal tool is `pwsh`. To use WSL, call `wsl.exe` through
 `pwsh`, for example `wsl.exe -- bash -lc 'command'` (or
@@ -93,7 +93,7 @@ DSH security-analysis capability used to be scattered across domain bundles: `ad
 
 helmd packs six domains + evidence tooling + first-turn bootstrap + the runtime hook layer + toolbox into one bundle:
 
-`one preset` &ensp; `one bundle` &ensp; `34 tools` &ensp; `zero manual wiring`
+`one preset` &ensp; `one bundle` &ensp; `33 tools` &ensp; `zero manual wiring`
 
 Install once, send `helmd` in a session, and every domain's tools are ready.
 
@@ -142,7 +142,6 @@ tool-wash description washing → persist evidence wrap → bootstrap first-turn
 | `tool-wash.ts` | `tools.register` wrap | Rewrites "a denial is final / do not retry" tool-description phrasing into continuable wording (defensive layer); hits are logged (verbose) |
 | `persist.ts` | `tools.register` wrap | All later-registered domain tools auto-persist output to `evidence/` (soft gate, no per-tool edits) |
 | `advisory-hook.ts` | `system-prompt/assemble` (outer) | Reckons the previous turn's advisories against the session log; detects delivery refusal / hedging phrasing and injects stance metrics (no-hedge / challenged / report-prefix / normalizer); sensitive input passes `input-normalizer.ts` first |
-| `model-probe.ts` | `llm_probe` calls OpenAI-compatible Chat Completions and audits response, classification, status and latency; `llm_eval_suite` adds synthetic-canary robustness checks; hidden reasoning is not collected |
 | `llm-stream-hook.ts` | `llm/stream` | Refusal closed loop: intercept (content / reasoning early-abort) → history laundering → prefill ladder (assistant-last → pair) re-entered via the `llm` service → honest passthrough on the final attempt; refusals / retries hit the ledger, counts and excerpts go to `~/.dsh/helmd-stream-intercept.log` |
 
 ## Runtime rules
@@ -158,9 +157,7 @@ A helmd session follows these fixed rules:
 | Subagent exemption | Sessions with delegationDepth > 0 always see the full catalog |
 | Analysis ladder | Ponytail-style: `analysis_mode` sets lite (quick triage) / full (standard flow, default) / deep (full evidence chain); per-session persistence, pick the shallowest rung that answers the task |
 | Deterministic routing | `route_task(hint)` keyword-matches a PRIMARY route plus a one-line rationale (route before you act); falls back to the decision tree |
-| Case workspace | `begin_case` creates an on-disk workspace (sample/evidence/scripts/CASE.md); tool outputs auto-persist to the evidence chain; `record_finding` enforces E-id citations; after compaction `case_status()` restores state from disk |
-| Model probe | `llm_probe` calls the configured OpenAI-compatible endpoint and records response classification, status, and latency |
-| Internal command | `llm_probe` evaluates a prompt against the configured model; results append to `~/.dsh/helmd-tools/model-probes.jsonl` |
+| Case workspace | `begin_case` creates an on-disk workspace (sample/evidence/scripts/CASE.md); tool outputs auto-persist to the evidence chain; `record_finding` enforces E-id citations and `repro_cmd`; after compaction `case_status()` restores state from disk and returns an `[autonomy]` packet (hypotheses / findings / evidence / playbook / next action) |
 | Stream interception | The `llm/stream` interceptor routes content / reasoning refusals through the closed loop (history laundering → prefill ladder nested re-request → honest passthrough); counts and excerpts go to `~/.dsh/helmd-stream-intercept.log`, surfaced in the workbench "intercept log" panel |
 
 ### Knowledge & routing
@@ -186,7 +183,7 @@ A helmd session follows these fixed rules:
 | Rule | Behavior |
 |------|----------|
 | Report template | Conclusions carry severity / confidence grades; template in `references/evidence/reporting.md` |
-| Case workspaces | `begin_case` creates an on-disk workspace; the persist hook auto-saves tool output into `evidence/`; conclusions must cite E ids (validated by `record_finding`) |
+| Case workspaces | `begin_case` creates an on-disk workspace; the persist hook auto-saves tool output into `evidence/`; conclusions must cite E ids and `repro_cmd` (both validated by `record_finding`) |
 
 ## Quick start
 
@@ -232,11 +229,11 @@ A hand-copied preset once drifted after a host upgrade and assembled a crippled 
 |------|------|------|
 | CLI | `node packages/helmd/scripts/gen-preset.mjs --check` | fingerprint moved → `HOST UPGRADED`; content drift → `STALE (content drift)`; non-zero exit |
 | Install/update | `install.ps1` / `setup-preset.ps1` | generates against the local host at install time, no manual copying |
-| GUI | the helmd card in the dsh settings page (below) | evaluated once per boot, badge always visible |
+| HTTP | `GET /api/helmd/health` | boot-time verdict served for diagnostics; no settings card |
 
-## Health status card
+## Health endpoint
 
-Since 0.2.1, helmd ships a health card in the **dsh web settings page**: Settings → Plugins → Plugin configuration → "helmd 安全分析包". The card only reports; it never writes.
+The preset health verdict is evaluated once per dsh boot and served at `GET /api/helmd/health` for diagnostics. The settings-page card was removed in the 0.2.1 host line: its old slot (`settings.plugin.item`) no longer exists, and the official settings seats are `settings.plugins.tab` / `plugins.item`. The verdict itself is unchanged:
 
 Each dsh boot evaluates this package's artifact `preset.generated.patch.yml` (redirect it with `HELMD_PRESET_PATCH`, for tests) against the installed host:
 
@@ -248,18 +245,19 @@ Each dsh boot evaluates this package's artifact `preset.generated.patch.yml` (re
 | 🟣 Legacy preset | artifact lacks the fingerprint header, provenance unknown | regenerate |
 | ⚪ Not generated | artifact missing | run install or gen-preset |
 
-Expanding the card shows both fingerprints (12 chars), version, the **drift-repair verdict**, evaluation time, and both paths for fast diagnosis.
+The endpoint returns both fingerprints (12 chars), version, the **drift-repair verdict**, evaluation time, and both paths for fast diagnosis.
 
-**Drift repair policy**: on drift the card repairs automatically, but **only files it can prove are its own artifact** — the package patch carrying the `gen-preset` fingerprint header (`STALE` content drift / `HOST_UPGRADED` host upgraded) is regenerated from the current host standard; one without a header (`LEGACY_PRESET`, possibly hand-written) is only reported and left alone. Every write keeps the previous file as `.bak` first, runs a **structural artifact assertion** right after (row set = host standard + `helmd`, no duplicate ids, the composition row retargeted to `preset-helmd` / `id: helmd`, `helm-d` declared once, persona carries our activation line) and reports `artifact check OK (N rows …)` before reminding you to restart dsh and assert the first request is `[pwsh, read]` (MAINTENANCE §8) — that live half needs a session and stays with you. Switches: `HELMD_AUTO_HEAL=0` reports everything (hand-managed artifacts), `=1` overwrites even a header-less file.
+**Drift repair policy**: on drift the boot-time check repairs automatically, but **only files it can prove are its own artifact** — the package patch carrying the `gen-preset` fingerprint header (`STALE` content drift / `HOST_UPGRADED` host upgraded) is regenerated from the current host standard; one without a header (`LEGACY_PRESET`, possibly hand-written) is only reported and left alone. Every write keeps the previous file as `.bak` first, runs a **structural artifact assertion** right after (row set = host standard + `helmd`, no duplicate ids, the composition row retargeted to `preset-helmd` / `id: helmd`, `helm-d` declared once, persona carries our activation line) and reports `artifact check OK (N rows …)` before reminding you to restart dsh and assert the first request is `[pwsh, read]` on Windows / `[bash, read]` elsewhere (MAINTENANCE §8) — that live half needs a session and stays with you. Switches: `HELMD_AUTO_HEAL=0` reports everything (hand-managed artifacts), `=1` overwrites even a header-less file.
 
-## Security Workbench & Dynamic Tool Shelf
+## Security Workbench
 
-Since 0.4.0 the workbench ships as three data panels, all fed live through the `/api/helmd/{tools,eval,intercept}` HTTP endpoints (15s polling):
+The workbench now has four tabs: three live data panels fed through `/api/helmd/{profile,case,intercept}` (15s polling), plus an About tab with an on-demand update check (`/api/helmd/update`):
 
-- **Dual-Track Interaction**: Clicking the capsule button immediately opens an anchored popover workbench drawer and simultaneously unfolds the right sidebar (Sidebar Right) into the `helmd 安全分析` workbench tab.
-- **Tool Shelf**: category hierarchy tree (6 top classes → sub-classes → tools), parsed live from the `~/.dsh/helmd-tools/TOOLS.md` ledger with in-UI registration; falls back to cross-platform standard paths (`~/.dsh/...` and system `PATH`) when the ledger is empty — out-of-the-box on Windows, macOS, and Linux.
-- **Attack Log**: real-time view of the model evaluation ledger, ranked by search-loop variant priority.
+- **Sidebar-first entry**: Clicking the capsule button opens (and focuses) the `helmd` workbench tab in the right sidebar; the compact popover is only a fallback when the host has no sidebarRight service.
+- **Armor Profile**: one-click hot switch between the sealed `core` / `stealth` / `redteam-max` personas. The live `helm-d:persona` section is disposed and re-registered in place, so the next model call uses the new body — no host restart. The choice persists to `$DSH_HOME/storages/helmd/profile.json`.
+- **Case**: hypothesis chain, findings, evidence list, and open hypotheses for the current case; refreshes on tab open.
 - **Intercept Log**: counts and excerpts of the transport-layer refusal closed loop (`~/.dsh/helmd-stream-intercept.log`).
+- **About**: author, disclaimer, update address, changelog, and an on-demand "Check updates" (GitHub Releases, npm registry fallback).
 
 ## Install from the plugin store
 
@@ -301,7 +299,7 @@ native_reference     → reads the Native reference
 detect_packer <file> → identifies the PE/ELF protector
 ```
 
-Settings → Plugins → Plugin configuration should show the helmd card with a green "健康 Healthy" badge. Any of the above returning normally means the install succeeded.
+The preset health verdict is served at `GET /api/helmd/health` (the old settings card is gone in the 0.2.1 host line). Any of the above returning normally means the install succeeded.
 
 ## Package & tools
 
@@ -330,11 +328,10 @@ Settings → Plugins → Plugin configuration should show the helmd card with a 
 | **Malware** | `yara_gen` | YARA rule generation |
 | **AI-Security** | `ai_reference` | AI/LLM security reference docs |
 | **AI-Security** | `llm_sim` | LLM app simulation testing |
-| **AI-Security** | `llm_probe` | Real OpenAI-compatible model evaluation with JSONL audit records |
 | **Evidence** | `evidence_reference` | Evidence/reporting reference docs |
-| **Case** | `begin_case` / `case_status` / `record_finding` / `end_case` | On-disk case lifecycle: open/resume/validated conclusions/close (deep mode requires findings) |
-| **Case** | `find_tool` | Search GitHub for existing tools (variant queries + helmd-tools shelf hits) |
+| **Case** | `begin_case` / `case_status` / `record_finding` / `end_case` | On-disk case lifecycle: open/resume/validated conclusions/close (deep mode requires findings with `repro_cmd`) |
 | **Case** | `save_evidence` | Persist arbitrary external CLI output into the evidence chain (E-numbered) |
+| **Case** | `record_hypothesis` / `update_hypothesis` | Hypothesis chain: one open at a time; confirmed/refuted require an observation and evidence ids |
 | **Evidence** | `triage_artifact` | Offline triage |
 | **Evidence** | `hash_artifact` | SHA-256 hashing |
 | **Toolbox** | `tool_recommend` | Tool library recommendations |
@@ -425,14 +422,13 @@ helmd/
 │       │   ├── tool-wash.ts   tool-description washing (refusal-terminal phrasing → continuable, defensive)
 │       │   ├── persist.ts     evidence-chain persistence wrap for all tools
 │       │   ├── advisory*.ts   advisory ledger + prompt-assembly injection (refusal / hedge detection)
-│       │   ├── model-probe.ts      OpenAI-compatible model evaluation
 │       │   ├── llm-stream-hook.ts  llm/stream refusal closed loop (launder → prefill ladder nested re-request) & audit
 │       │   ├── input-normalizer.ts sensitive input → engineering-term normalization
 │       │   ├── router.ts      skill_catalog / read_reference routing
 │       │   ├── health.ts      settings-page health face (boot-time fingerprint eval → settings namespace)
 │       │   ├── seam.ts        shared IO seam (fs / subprocess / cmd resolve / path guard)
-│       │   └── tools/         10 tool modules (34 tools)
-│       ├── client.js          browser half: settings-page health card + workbench (lazy-CJS factory, no build chain)
+│       │   └── tools/         9 tool modules (33 tools)
+│       ├── client.js          browser half: workbench + gate overlay (lazy-CJS factory, no build chain)
 │       ├── references/        362 on-demand reference docs (8 domains + toolbox)
 │       ├── scripts/           analysis scripts + ai-security corpus/ledger + gen-preset.mjs + setup-preset.{ps1,sh}
 │       ├── presets/           persona single source + preset.yml (picker order/description)

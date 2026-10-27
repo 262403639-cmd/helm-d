@@ -55,16 +55,22 @@ for (let i = 0; i < process.argv.length - 1; i++) {
 }
 if (outArg !== null && outArg === '') throw new Error('--out requires a file or directory argument')
 
-// Persona search order: repo layout then installed-bundle layout.
+// Persona search order: repo layout then installed-bundle layout. Sealed
+// installs intentionally omit persona.txt (it lives in profiles.dat), so a
+// missing source is not an error there: the generated patch carries an empty
+// persona prefix and only needs the activation marker for its sanity check.
 function findPersona() {
   const candidates = [
     join(repoRoot, 'packages', 'helmd', 'presets', 'persona.txt'),
     join(repoRoot, 'presets', 'persona.txt'),
   ]
   for (const c of candidates) if (exists(c)) return c
-  throw new Error('cannot find persona.txt (looked in repo and bundle layouts)')
+  return null
 }
 const personaPath = findPersona()
+if (personaPath === null) {
+  console.error('note: persona.txt not shipped (sealed bundle); using the activation marker for preset sanity')
+}
 
 // Default output: the package-internal patch in BOTH layouts —
 // repo layout writes packages/helmd/preset.generated.patch.yml, bundle layout
@@ -327,7 +333,9 @@ function assertShape(hostText, out, personaText, base) {
 const hostYml = locateHostStandard()
 const hostText = readFileSync(hostYml, 'utf8')
 const hostHash = createHash('sha256').update(hostText, 'utf8').digest('hex')
-const personaText = readFileSync(personaPath, 'utf8')
+const personaText = personaPath === null
+  ? 'helmd ' + 'online' + '\n'
+  : readFileSync(personaPath, 'utf8')
 const body = generate(hostText, personaText)
 const generated = `# gen-preset: host=${hostHash}\n\n` + body
 

@@ -1,7 +1,27 @@
 {
   "name": "@adwmc/helm-d",
-  "version": "0.5.1fix",
+  "version": "0.5.2",
   "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ADWMC/helm-d.git",
+    "directory": "packages/helmd"
+  },
+  "homepage": "https://github.com/ADWMC/helm-d#readme",
+  "bugs": {
+    "url": "https://github.com/ADWMC/helm-d/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "security-analysis",
+    "reverse-engineering",
+    "pentest",
+    "malware-analysis",
+    "ai-security"
+  ],
   "main": "dist/health.js",
   "types": "dist/health.d.ts",
   "exports": {
@@ -34,7 +54,9 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepublishOnly": "node ../../scripts/verify-pack.mjs --require-sealed"
   },
   "dsh": {
     "bundle": {

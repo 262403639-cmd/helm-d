@@ -5,7 +5,8 @@
 // under a context that enforces the guard, once with a tools service exposing only
 // ToolRuntime's public enumeration.
 import assert from 'node:assert/strict'
-import { existsSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { distDir } from './artifacts.mjs'
@@ -13,10 +14,14 @@ import { createReporter, skip } from './reporter.mjs'
 
 const entry = join(distDir, 'health.js')
 if (!existsSync(entry)) skip('api-routes', 'need packages/helmd/dist (run pnpm build)')
+
+// The profile POST persists the operator choice. Keep the check off the real
+// ~/.dsh state: every write goes to this throwaway home.
+process.env.DSH_HOME = mkdtempSync(join(tmpdir(), 'helmd-api-home-'))
 const report = createReporter('api-routes')
 
 const ROUTE_BASE = '/api/helmd'
-const ROUTES = ['tools', 'eval', 'intercept']
+const ROUTES = ['tools', 'intercept', 'profile', 'update', 'gate/retry']
 
 /** Registry contents, reachable only through register/schemas — no layer internals. */
 const registered = []
@@ -73,6 +78,35 @@ async function call(path) {
   return { status: res.statusCode, payload: JSON.parse(res.body) }
 }
 
+/** Drive a POST through the same registered handler with a JSON body. */
+async function post(path, body, headers = { 'content-type': 'application/json' }) {
+  const route = routes.get(`exact\u0000${path}`)
+  assert.ok(route, `route ${path} was not registered`)
+  const listeners = new Map()
+  const req = {
+    method: 'POST',
+    headers,
+    on(event, callback) {
+      const list = listeners.get(event) ?? []
+      list.push(callback)
+      listeners.set(event, list)
+      return req
+    },
+  }
+  const res = {
+    statusCode: 0,
+    body: '',
+    setHeader() {},
+    end(chunk) { this.body = chunk },
+  }
+  const pending = route.handler(req, res)
+  const chunk = Buffer.from(JSON.stringify(body), 'utf8')
+  for (const callback of listeners.get('data') ?? []) callback(chunk)
+  for (const callback of listeners.get('end') ?? []) callback()
+  await pending
+  return { status: res.statusCode, payload: JSON.parse(res.body) }
+}
+
 await report.check('every workbench route is registered', () => {
   for (const name of ROUTES) {
     assert.ok(routes.has(`exact\u0000${ROUTE_BASE}/${name}`), `missing route: ${ROUTE_BASE}/${name}`)
@@ -90,12 +124,58 @@ await report.check('GET /tools reports the live registry through the public enum
   assert.deepEqual(payload.data, [...registered].sort())
 })
 
-for (const name of ['eval', 'intercept']) {
+for (const name of ['intercept']) {
   await report.check(`GET /${name} answers 200`, async () => {
     const { status, payload } = await call(`${ROUTE_BASE}/${name}`)
     assert.equal(status, 200, `got ${status}: ${payload?.error ?? ''}`)
     assert.equal(payload.ok, true)
   })
 }
+
+await report.check('GET /profile reports the sealed catalog and its active entry', async () => {
+  const { status, payload } = await call(`${ROUTE_BASE}/profile`)
+  assert.equal(status, 200, `got ${status}: ${payload?.error ?? ''}`)
+  assert.equal(payload.ok, true)
+  assert.equal(typeof payload.data.activeId, 'string')
+  assert.ok(
+    payload.data.profiles.some((p) => p.id === payload.data.activeId && p.active === true),
+    'the active id must name exactly one active catalog entry',
+  )
+})
+
+await report.check('POST /profile persists the operator choice', async () => {
+  const { status, payload } = await post(`${ROUTE_BASE}/profile`, { id: 'stealth' })
+  assert.equal(status, 200, `got ${status}: ${payload?.error ?? ''}`)
+  assert.equal(payload.ok, true)
+  assert.equal(payload.data.activeId, 'stealth')
+  assert.ok(payload.data.profiles.find((p) => p.id === 'stealth').active)
+  const saved = JSON.parse(readFileSync(join(process.env.DSH_HOME, 'storages', 'helmd', 'profile.json'), 'utf8'))
+  assert.equal(saved.activeId, 'stealth')
+})
+
+await report.check('POST /profile rejects an unknown id without changing the choice', async () => {
+  const { status, payload } = await post(`${ROUTE_BASE}/profile`, { id: 'ghost' })
+  assert.equal(status, 400, `expected 400, got ${status}`)
+  assert.equal(payload.ok, false)
+  assert.match(payload.error, /unknown profile/)
+  const { payload: after } = await call(`${ROUTE_BASE}/profile`)
+  assert.equal(after.data.activeId, 'stealth')
+})
+
+await report.check('POST /profile rejects a body without an id', async () => {
+  const { status, payload } = await post(`${ROUTE_BASE}/profile`, {})
+  assert.equal(status, 400, `expected 400, got ${status}`)
+  assert.equal(payload.ok, false)
+})
+
+await report.check('POST /profile refuses a non-JSON content type (no drive-by form)', async () => {
+  const { status, payload } = await post(
+    `${ROUTE_BASE}/profile`,
+    { id: 'core' },
+    { 'content-type': 'text/plain' },
+  )
+  assert.equal(status, 415, `expected 415, got ${status}`)
+  assert.equal(payload.ok, false)
+})
 
 report.finish()

@@ -81,6 +81,19 @@ for (const rel of distFiles) {
   manifest.files[target] = readFileSync(src, 'utf8')
   realMove.push([src, target])
 }
+
+// scripts/** seals into the same payload (extracted to real package paths on
+// first import). The source directory stays in the repo for development; npm
+// pack excludes it via the package files whitelist, so the tarball has no
+// plaintext scripts while installed tools still find their interpreters next
+// to package.json. Without this, every domain tool that shells out to
+// scripts/<domain>/ and health.autoHeal fail in a sealed install (audit P0-1).
+const scriptDir = join(pkgRoot, 'scripts')
+const scriptFiles = existsSync(scriptDir) ? walk(scriptDir) : []
+for (const rel of scriptFiles) {
+  manifest.files[`scripts/${rel}`] = readFileSync(join(scriptDir, rel), 'utf8')
+}
+
 manifest.hash = crypto.createHash('sha256')
   .update(Object.keys(manifest.files).sort().join('\n'))
   .digest('hex')

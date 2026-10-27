@@ -39,6 +39,18 @@ await report.check('a subagent child is never restricted', async () => {
   const assembled = await assemble(child)
   assert.deepEqual(assembled.tools.map((tool) => tool.name), ['pwsh', 'read', 'glob'])
 })
+await report.check('a host carrying both shells still anchors on the platform one', async () => {
+  let platform = null
+  const native = process.platform === 'win32' ? 'pwsh' : 'bash'
+  seam.bootstrap.applyBootstrapFilter(
+    { on: (_name, handler) => { platform = handler }, logger: { warn: () => {} } },
+    { shellTools: [native], commonTools: ['read'], promoteOn: 'either' },
+  )
+  const both = [{ name: 'pwsh' }, { name: 'read' }, { name: 'bash' }, { name: 'glob' }]
+  const assembled = await platform({}, { agent: hostShaped([]) }, async () => ({ sections: [], tools: both }))
+  assert.deepEqual(assembled.tools.map((tool) => tool.name), [native, 'read'])
+})
+
 await report.check('a catalog without the anchor pair is exposed whole', async () => {
   let plain = null
   seam.bootstrap.applyBootstrapFilter(

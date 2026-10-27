@@ -25,12 +25,45 @@ const NAMES = { core: '全能主档（v10 全量）', stealth: '轻量隐匿版'
 const files = readdirSync(profilesDir).filter((f) => f.endsWith('.md'))
 if (files.length === 0) throw new Error(`no profiles found in ${profilesDir}`)
 
+/** Optional `--- extends: <id> ---` header: a mode overlay is appended to the
+ *  base body instead of being a standalone profile. Without this, a short
+ *  variant file would REPLACE the full persona on switch and strip the armor. */
+function splitFrontmatter(text) {
+  // Normalize line endings: a CRLF checkout must not silently disable extends.
+  const normalized = text.replace(/\r\n/g, '\n')
+  if (!normalized.startsWith('---\n')) return { meta: {}, body: normalized }
+  const end = normalized.indexOf('\n---\n', 4)
+  if (end < 0) return { meta: {}, body: normalized }
+  const meta = {}
+  for (const line of normalized.slice(4, end).split('\n')) {
+    const at = line.indexOf(':')
+    if (at > 0) meta[line.slice(0, at).trim()] = line.slice(at + 1).trim()
+  }
+  return { meta, body: normalized.slice(end + 5) }
+}
+
+const sources = new Map()
+for (const f of files) {
+  sources.set(f.replace(/\.md$/, ''), splitFrontmatter(readFileSync(join(profilesDir, f), 'utf8')))
+}
+
+/** Compose a profile body, expanding `extends` chains (cycle-safe). */
+function bodyFor(id, seen = new Set()) {
+  const source = sources.get(id)
+  if (source === undefined) throw new Error(`profiles/${id}.md is missing`)
+  const base = source.meta.extends
+  if (base === undefined) return source.body
+  if (seen.has(id)) throw new Error(`profiles/${id}.md has a circular extends chain`)
+  if (!sources.has(base)) throw new Error(`profiles/${id}.md extends unknown profile "${base}"`)
+  return bodyFor(base, new Set([...seen, id])) + '\n\n' + source.body
+}
+
 const catalog = {
   version: 2,
   activeId: 'core',
   profiles: files.map((f) => {
     const id = f.replace(/\.md$/, '')
-    const body = readFileSync(join(profilesDir, f), 'utf8')
+    const body = bodyFor(id)
     if (id === 'core' && !body.includes('helmd ' + 'online')) {
       throw new Error('profiles/core.md lost the activation line (helmd ' + 'online) — persona source is stale or wrong')
     }

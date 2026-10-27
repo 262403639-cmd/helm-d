@@ -88,7 +88,7 @@ const rules: Record<string, string> = {
 
   // 9. AI / LLM 安全
   jailbreak: '模型安全评测 -> references/ai-security/{model-security-analysis-guide,bypass-framework-matrix}.md；在自有测试样本上比较响应分类、拒答一致性和审计记录',
-  llm: 'LLM 应用安全评测 -> references/ai-security/ + llm_probe / llm_sim 工具',
+  llm: 'LLM 应用安全评测 -> references/ai-security/ + llm_sim 工具',
 }
 
 export function registerToolboxTools(ctx: Context): void {
@@ -111,7 +111,7 @@ export function registerToolboxTools(ctx: Context): void {
       const unique = [...new Set(hits)]
       return unique.length
         ? unique.join('\n')
-        : 'triage-and-route: detect_packer + scan_strings + create_case + hash_artifact'
+        : 'triage-and-route: begin_case + detect_packer + scan_strings + hash_artifact'
     },
   }))
 }
