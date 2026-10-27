@@ -7,20 +7,9 @@
 
 ## [Unreleased]
 
-### 文档
+## [0.5.2] — 2026-10-28（重发：Case 会话隔离 + 原生工作台 + Hd 图标）
 
-- **README 重写**：首屏改成定位 + 安装 + 5 分钟上手；长工具表/架构钩子收进 `<details>`；赞助商保留首屏卡片位（按旧版布局）；版本改用 Release badge 动态读取；中英文同步
-- **首屏图标**：新增 `assets/helm-d-light.svg` / `assets/helm-d-dark.svg`（Hd 单字标 + d 碗内 `>_` + 裂纹），README 用 `<picture>` 按深浅色切换
-
-### 运行时
-
-- **工作台品牌图标**：header 胶囊与右侧栏 `helmd 工作台` tab 左侧改用 Hd 标记（内联 SVG，`currentColor`，与 README 的 `helm-d-{light,dark}.svg` 同源）
-- **Case 会话隔离**：`/api/helmd/case*` 按 `sessionId` 只返回本会话绑定的 case，不再全局挑磁盘上最新的 open case；绑定持久化到 `$DSH_HOME/storages/helmd/sessions/<sha256>.json`，宿主机重启后仍能恢复
-- **Case 提示词注入**：每轮 system prompt 注入 `[helm-d case]` 段（case 名称 / goal / 目录 / mode / `case_status()` 与 `end_case` 规则），模型不再忘记当前 case；新增 `case-session` 检查，检查集 20 项
-
-## [0.5.2] — 2026-10-27（原生工作台 + L3/L4-lite 自主状态）
-
-本版把工作台收回 DSH 官方槽位（破甲 / Case / 拦截 / 关于），补齐模型侧 L3 自主状态包与 L4-lite 调度建议，收紧结论 `repro_cmd` 门禁，并加固 Star 流程；移除 `find_tool` 与模型评测后工具数为 33，检查集 19 项。分发形态不变：payload / references / profiles 全封印。
+本版把工作台收回 DSH 官方槽位（破甲 / Case / 拦截 / 关于），补齐模型侧 L3 自主状态包与 L4-lite 调度建议，收紧结论 `repro_cmd` 门禁，并加固 Star 流程；重发补上 Case 按会话绑定与提示词注入、工作台 Hd 图标与 README 重写。移除 `find_tool` 与模型评测后工具数为 33，检查集 20 项。分发形态不变：payload / references / profiles 全封印。
 
 - **修复安装包脚本缺失（P0-1）**：`build-sealed` 把 `scripts/**` 一并封进 `payload.dat`，首次导入解压到包内 `scripts/`；`apk_fingerprint` / `pcap_parse` / `triage_artifact` / `native_*` 等脚本型工具与 `health.autoHeal` 在压缩包安装下恢复可用。`verify-pack` 现在解封 `payload.dat` 断言脚本与真实入口存在，不再只给 WARN。封印布局没有 `persona.txt` 时，`gen-preset` 用激活标记完成 preset sanity
 
@@ -54,6 +43,14 @@
 - **Star 流程加固**：设备流失败按 30s → 1 → 2 → 4 → 5 分钟退避，不再每 5 秒重试；授权后未检测到 Star 不再自动重发设备码，改为「已授权」保持态 + 显式「重新验证」；弹窗延迟 8 秒出现，手动 Star 路径加提示
 - **Star 弹窗帮助入口**：新增“遇到问题？查看帮助 / 提交 Issue”，设备流错误在收起状态也可见；新增 `docs/star-gate-help.md`（手动 Star、自动验证、代理、代码过期、重置等排查）
 - **Star 弹窗优化**：删除“完成校验以解锁”的误导文案（它并不 gate 功能），改为“支持 helm-d / 不影响任何功能”；主按钮直接打开仓库，“自动验证”默认收起；新增关闭按钮、复制反馈和“本次不再提示”
+
+### 重发追加（2026-10-28）
+
+- **README 重写**：首屏改成定位 + 安装 + 5 分钟上手；长工具表/架构钩子收进 `<details>`；赞助商保留首屏卡片位（按旧版布局）；版本改用 Release badge 动态读取；中英文同步
+- **首屏图标**：新增 `assets/helm-d-light.svg` / `assets/helm-d-dark.svg`（Hd 单字标 + d 碗内 `>_` + 裂纹），README 用 `<picture>` 按深浅色切换
+- **工作台品牌图标**：header 胶囊与右侧栏 `helmd 工作台` tab 左侧改用 Hd 标记（内联 SVG，`currentColor`，与 README 的 `helm-d-{light,dark}.svg` 同源）
+- **Case 会话隔离**：`/api/helmd/case*` 按 `sessionId` 只返回本会话绑定的 case，不再全局挑磁盘上最新的 open case；绑定持久化到 `$DSH_HOME/storages/helmd/sessions/<sha256>.json`，宿主机重启后仍能恢复
+- **Case 提示词注入**：每轮 system prompt 注入 `[helm-d case]` 段（case 名称 / goal / 目录 / mode / `case_status()` 与 `end_case` 规则），模型不再忘记当前 case；新增 `case-session` 检查，检查集 20 项
 
 ## [0.5.1fix] — 2026-10-24（star 请求彻底退出会话 + 代理传输 + 封包修复）
 
