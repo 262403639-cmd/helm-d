@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/helm-d.svg" width="104" alt="helm-d icon" />
+
 # helm-d
 
 **A security-analysis plugin for DeepSeek Harness.**
