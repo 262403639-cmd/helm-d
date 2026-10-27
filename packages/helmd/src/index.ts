@@ -6,6 +6,7 @@ import { registerLlmStreamHook } from './llm-stream-hook.js'
 import { applyPersistenceWrap } from './persist.js'
 import { registerRouterTools } from './router.js'
 import { registerCaseflowTools } from './tools/caseflow.js'
+import { registerCaseContext } from './case-context.js'
 import { registerAndroidTools } from './tools/android.js'
 import { registerWebTools } from './tools/web.js'
 import { registerNativeTools } from './tools/native.js'
@@ -57,6 +58,9 @@ export function apply(ctx: Context): void {
 
     // Case lifecycle: begin_case / case_status / record_finding / save_evidence / end_case
     registerCaseflowTools(ctx)
+    // Per-turn [helm-d case] section: the model sees the case it is bound to,
+    // not just a tool it may forget to call after compaction.
+    registerCaseContext(ctx)
 
 
     // Domain tools

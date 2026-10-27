@@ -15,6 +15,8 @@
 ### 运行时
 
 - **工作台品牌图标**：header 胶囊与右侧栏 `helmd 工作台` tab 左侧改用 Hd 标记（内联 SVG，`currentColor`，与 README 的 `helm-d-{light,dark}.svg` 同源）
+- **Case 会话隔离**：`/api/helmd/case*` 按 `sessionId` 只返回本会话绑定的 case，不再全局挑磁盘上最新的 open case；绑定持久化到 `$DSH_HOME/storages/helmd/sessions/<sha256>.json`，宿主机重启后仍能恢复
+- **Case 提示词注入**：每轮 system prompt 注入 `[helm-d case]` 段（case 名称 / goal / 目录 / mode / `case_status()` 与 `end_case` 规则），模型不再忘记当前 case；新增 `case-session` 检查，检查集 20 项
 
 ## [0.5.2] — 2026-10-27（原生工作台 + L3/L4-lite 自主状态）
 

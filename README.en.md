@@ -118,7 +118,7 @@ All three are sealed in `profiles.dat`. Switching disposes the old section and r
 Click the `helmd` workbench button in the DSH session header. It opens the right sidebar first and falls back to a popover only when the sidebar service is unavailable:
 
 - **Profiles**: switch between the three personas live.
-- **Case**: hypotheses, findings, evidence and open questions.
+- **Case**: the case bound to this session — hypotheses, findings, evidence and open questions. When unbound it shows a hint plus recent on-disk cases instead of another session's investigation.
 - **Intercept**: counts and excerpts from the stream refusal loop.
 - **About**: version, author, disclaimer, update address, changelog and an on-demand update check.
 

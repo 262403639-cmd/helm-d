@@ -17,7 +17,7 @@ import fs from 'node:fs'
 import { gateStatus, retryFlow, skipThisLaunch, switchProfile } from './gate.js'
 import { profileStatus } from './profile.js'
 import { checkForUpdate } from './update-check.js'
-import { listCasesOnDisk, loadHypotheses, countEvidence, loadFindings, listEvidence } from './case.js'
+import { listCasesOnDisk, loadHypotheses, countEvidence, loadFindings, listEvidence, getCase } from './case.js'
 
 const ROUTE_BASE = '/api/helmd'
 
@@ -57,6 +57,19 @@ function readJsonBody(req: unknown, limit = 8192): Promise<unknown> {
     })
     stream.on('error', (error: Error) => reject(new HttpError(400, error.message)))
   })
+}
+
+/** Read one query parameter from the request URL (the workbench passes sessionId). */
+function queryParam(req: unknown, name: string): string | undefined {
+  const url = String((req as { url?: unknown } | null | undefined)?.url ?? '')
+  const q = url.indexOf('?')
+  if (q < 0) return undefined
+  try {
+    const value = new URLSearchParams(url.slice(q + 1)).get(name)
+    return value !== null && value.trim() !== '' ? value.trim() : undefined
+  } catch {
+    return undefined
+  }
 }
 
 /** Read stream intercept stats from the llm-stream-hook's in-memory counters. */
@@ -108,8 +121,8 @@ export function registerHelmdApi(ctx: Context, getHealth?: () => unknown): void 
     })
   }
 
-  function get(path: string, handler: () => Promise<unknown> | unknown): void {
-    route(path, () => handler())
+  function get(path: string, handler: (req: any) => Promise<unknown> | unknown): void {
+    route(path, (req) => handler(req))
   }
 
   // Boot-time health verdict, evaluated once by the host plane (health.ts).
@@ -170,45 +183,53 @@ export function registerHelmdApi(ctx: Context, getHealth?: () => unknown): void 
     }
   })
 
-  // Case status: most recent open case with hypotheses and evidence counts.
-  get(`${ROUTE_BASE}/case`, async () => {
+  // Case status: the case bound to THIS session. There is deliberately no
+  // "latest open case" fallback — that made the workbench show an unrelated
+  // session's investigation. Unbound sessions get a recent-case list instead.
+  get(`${ROUTE_BASE}/case`, async (req) => {
+    const sessionId = queryParam(req, 'sessionId')
+    const active = sessionId ? getCase(sessionId) : undefined
+    if (active) {
+      const hyps = await loadHypotheses(active.dir)
+      const evCount = await countEvidence(active.dir)
+      return {
+        active: true,
+        sessionId,
+        name: active.name, goal: active.goal, mode: active.mode,
+        evidenceCount: evCount,
+        hypotheses: hyps.map((h) => ({ id: h.id, statement: h.statement.slice(0, 100), status: h.status, evidenceIds: h.evidenceIds })),
+        openHypotheses: hyps.filter((h) => h.status === 'open').length,
+      }
+    }
     const cases = await listCasesOnDisk()
-    const open = cases.filter((c) => c.status === 'open')
-    if (open.length === 0) return { active: false, cases: cases.slice(0, 5) }
-    const c = open[0]
-    const hyps = await loadHypotheses(c.dir)
-    const evCount = await countEvidence(c.dir)
     return {
-      active: true,
-      name: c.name, goal: c.goal, mode: c.mode,
-      evidenceCount: evCount,
-      hypotheses: hyps.map((h) => ({ id: h.id, statement: h.statement.slice(0, 100), status: h.status, evidenceIds: h.evidenceIds })),
-      openHypotheses: hyps.filter((h) => h.status === 'open').length,
+      active: false,
+      sessionId: sessionId ?? null,
+      cases: cases.slice(0, 5).map((c) => ({
+        name: c.name, status: c.status, goal: c.goal, evidenceCount: c.evidenceCount,
+      })),
     }
   })
 
-  // Hypotheses for the most recent open case.
-  get(`${ROUTE_BASE}/case/hypotheses`, async () => {
-    const cases = await listCasesOnDisk()
-    const open = cases.filter((c) => c.status === 'open')
-    if (open.length === 0) return []
-    return loadHypotheses(open[0].dir)
+  // Hypotheses for the session-bound case.
+  get(`${ROUTE_BASE}/case/hypotheses`, async (req) => {
+    const sessionId = queryParam(req, 'sessionId')
+    const active = sessionId ? getCase(sessionId) : undefined
+    return active ? loadHypotheses(active.dir) : []
   })
 
-  // Findings for the most recent open case.
-  get(`${ROUTE_BASE}/case/findings`, async () => {
-    const cases = await listCasesOnDisk()
-    const open = cases.filter((c) => c.status === 'open')
-    if (open.length === 0) return []
-    return loadFindings(open[0].dir)
+  // Findings for the session-bound case.
+  get(`${ROUTE_BASE}/case/findings`, async (req) => {
+    const sessionId = queryParam(req, 'sessionId')
+    const active = sessionId ? getCase(sessionId) : undefined
+    return active ? loadFindings(active.dir) : []
   })
 
-  // Evidence list for the most recent open case.
-  get(`${ROUTE_BASE}/case/evidence`, async () => {
-    const cases = await listCasesOnDisk()
-    const open = cases.filter((c) => c.status === 'open')
-    if (open.length === 0) return []
-    return listEvidence(open[0].dir)
+  // Evidence list for the session-bound case.
+  get(`${ROUTE_BASE}/case/evidence`, async (req) => {
+    const sessionId = queryParam(req, 'sessionId')
+    const active = sessionId ? getCase(sessionId) : undefined
+    return active ? listEvidence(active.dir) : []
   })
 
 }

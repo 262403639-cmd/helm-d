@@ -3,9 +3,10 @@
 // a session (exec.agent.id) to its active case dir for convenience.
 
 import { createHash } from 'node:crypto'
-import { createReadStream, existsSync } from 'node:fs'
+import { createReadStream, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
 import { mkdir, copyFile, writeFile, appendFile, readFile, readdir, rename } from 'node:fs/promises'
-import { join, resolve, basename } from 'node:path'
+import { homedir } from 'node:os'
+import { basename, dirname, join, resolve } from 'node:path'
 
 export interface CaseInfo {
   dir: string
@@ -17,18 +18,60 @@ export interface CaseInfo {
 
 const bindings = new Map<string, CaseInfo>()
 
+/** $DSH_HOME/storages/helmd/sessions/<sha256(sessionId)>.json */
+function sessionBindingPath(sessionId: string): string {
+  const home = process.env.DSH_HOME ?? join(homedir(), '.dsh')
+  const key = createHash('sha256').update(sessionId).digest('hex')
+  return join(home, 'storages', 'helmd', 'sessions', `${key}.json`)
+}
+
+/** Read the bound case from memory, then from the session binding file. The
+ *  file survives host restarts and context compaction; without it the model
+ *  (and the workbench) would fall back to "latest open case on disk", which is
+ *  exactly the cross-session confusion the workbench used to show. */
 export function getCase(sessionId?: string): CaseInfo | undefined {
-  return bindings.get(sessionId ?? '__global__')
+  const key = sessionId ?? '__global__'
+  const cached = bindings.get(key)
+  if (cached) return cached
+  if (!sessionId) return undefined
+  try {
+    const parsed = JSON.parse(readFileSync(sessionBindingPath(sessionId), 'utf8')) as Partial<CaseInfo> | null
+    if (parsed !== null && typeof parsed === 'object' && typeof parsed.dir === 'string') {
+      const dir = resolve(parsed.dir)
+      if (existsSync(join(dir, 'CASE.md'))) {
+        const info: CaseInfo = {
+          dir,
+          name: typeof parsed.name === 'string' ? parsed.name : basename(dir),
+          goal: typeof parsed.goal === 'string' ? parsed.goal : 'unspecified',
+          mode: typeof parsed.mode === 'string' ? parsed.mode : 'full',
+          route: typeof parsed.route === 'string' ? parsed.route : 'pending (route_task)',
+        }
+        bindings.set(key, info)
+        return info
+      }
+    }
+  } catch { /* no binding file / unreadable — the caller sees no active case */ }
+  return undefined
 }
 
 export function bindCase(sessionId: string | undefined, info: CaseInfo): void {
-  bindings.set(sessionId ?? '__global__', info)
+  const key = sessionId ?? '__global__'
+  bindings.set(key, info)
+  if (!sessionId) return
+  try {
+    const path = sessionBindingPath(sessionId)
+    mkdirSync(dirname(path), { recursive: true })
+    writeFileSync(path, JSON.stringify({ sessionId, ...info, boundAt: new Date().toISOString() }, null, 2), 'utf8')
+  } catch { /* best effort: the in-memory binding still works for this process */ }
 }
 
 export function unbindCase(sessionId?: string): CaseInfo | undefined {
   const key = sessionId ?? '__global__'
   const info = bindings.get(key)
   bindings.delete(key)
+  if (sessionId) {
+    try { unlinkSync(sessionBindingPath(sessionId)) } catch { /* already absent */ }
+  }
   return info
 }
 

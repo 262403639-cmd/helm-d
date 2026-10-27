@@ -5,7 +5,7 @@
 // under a context that enforces the guard, once with a tools service exposing only
 // ToolRuntime's public enumeration.
 import assert from 'node:assert/strict'
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -18,6 +18,7 @@ if (!existsSync(entry)) skip('api-routes', 'need packages/helmd/dist (run pnpm b
 // The profile POST persists the operator choice. Keep the check off the real
 // ~/.dsh state: every write goes to this throwaway home.
 process.env.DSH_HOME = mkdtempSync(join(tmpdir(), 'helmd-api-home-'))
+process.env.HELMD_CASES_DIR = mkdtempSync(join(tmpdir(), 'helmd-api-cases-'))
 const report = createReporter('api-routes')
 
 const ROUTE_BASE = '/api/helmd'
@@ -65,7 +66,7 @@ const { apply } = await import(pathToFileURL(entry).href)
 apply(makeContext([]))
 
 /** Call a registered handler against a stand-in response. */
-async function call(path) {
+async function call(path, req = {}) {
   const route = routes.get(`exact\u0000${path}`)
   assert.ok(route, `route ${path} was not registered`)
   const res = {
@@ -74,7 +75,7 @@ async function call(path) {
     setHeader() {},
     end(chunk) { this.body = chunk },
   }
-  await route.handler({}, res)
+  await route.handler(req, res)
   return { status: res.statusCode, payload: JSON.parse(res.body) }
 }
 
@@ -176,6 +177,36 @@ await report.check('POST /profile refuses a non-JSON content type (no drive-by f
   )
   assert.equal(status, 415, `expected 415, got ${status}`)
   assert.equal(payload.ok, false)
+})
+
+// The workbench used to show the latest open case from disk, so a fresh session
+// could display another session's investigation. The route now resolves only
+// the sessionId it was given; a different or missing session gets `active:false`.
+const caseDir = join(process.env.HELMD_CASES_DIR, '2026-10-27-api-case')
+mkdirSync(join(caseDir, 'evidence'), { recursive: true })
+writeFileSync(join(caseDir, 'CASE.md'), 'status: open\ngoal: api case\nmode: full\nroute: reverse\n')
+const { bindCase } = await import(pathToFileURL(join(distDir, 'case.js')).href)
+bindCase('sess-api', { dir: caseDir, name: '2026-10-27-api-case', goal: 'api case', mode: 'full', route: 'reverse' })
+
+await report.check('GET /case is bound to the requesting session, not the latest open case', async () => {
+  const bound = await call(`${ROUTE_BASE}/case`, { url: `${ROUTE_BASE}/case?sessionId=sess-api` })
+  assert.equal(bound.status, 200)
+  assert.equal(bound.payload.data.active, true)
+  assert.equal(bound.payload.data.name, '2026-10-27-api-case')
+
+  const other = await call(`${ROUTE_BASE}/case`, { url: `${ROUTE_BASE}/case?sessionId=sess-other` })
+  assert.equal(other.payload.data.active, false)
+
+  const none = await call(`${ROUTE_BASE}/case`)
+  assert.equal(none.payload.data.active, false)
+})
+
+await report.check('GET /case/findings follows the same session binding', async () => {
+  const bound = await call(`${ROUTE_BASE}/case/findings`, { url: `${ROUTE_BASE}/case/findings?sessionId=sess-api` })
+  assert.equal(bound.status, 200)
+  assert.ok(Array.isArray(bound.payload.data))
+  const other = await call(`${ROUTE_BASE}/case/findings`, { url: `${ROUTE_BASE}/case/findings?sessionId=sess-other` })
+  assert.deepEqual(other.payload.data, [])
 })
 
 report.finish()

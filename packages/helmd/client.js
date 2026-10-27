@@ -463,12 +463,50 @@ exports.apply = function apply(ctx) {
 	function CaseTab(props) {
 		var cd = props.caseData;
 		if (!cd || !cd.active) {
+			var recent = Array.isArray(cd && cd.cases) ? cd.cases : [];
 			return h("div", { style: S.card },
-				h(EmptyState, {
-					icon: h(CaseIcon, null),
-					title: "暂无进行中的案件",
-					hint: "在对话里调用 begin_case 建立案件，假设、证据与结论会自动汇总到这里。",
-				})
+				h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+					h("span", { style: S.title }, "当前会话未绑定 case"),
+					props.onRefresh ? h("button", {
+						type: "button", onClick: props.onRefresh, className: "hm-btn",
+						style: {
+							marginLeft: "auto", height: 24, padding: "0 8px", borderRadius: 4,
+							border: "0.5px solid var(--dsw-alias-border-l3)", background: "transparent",
+							color: "var(--dsw-alias-label-secondary)", fontSize: 11, cursor: "pointer",
+						},
+					}, "刷新") : null
+				),
+				h("div", { style: Object.assign({}, S.caption, { marginTop: 4 }) },
+					"工作台只显示本会话通过 begin_case / case_status 绑定的案件，不再自动挑磁盘上最新的 open case。"
+				),
+				recent.length ? h("div", { style: { marginTop: 10 } },
+					h("div", { style: S.caption }, "磁盘上最近的 case（在对话里用 case_status(name) 绑定）"),
+					h("div", { style: { display: "flex", flexDirection: "column", gap: 4, marginTop: 4 } },
+						recent.map(function (c) {
+							return h("div", {
+								key: c.name,
+								style: {
+									display: "flex", alignItems: "baseline", gap: 8,
+									padding: "5px 6px", borderRadius: "var(--dsw-radius-xs)",
+									background: "var(--dsw-alias-fill-tsp-secondary)",
+								},
+							},
+								h("span", { style: { fontFamily: CODE, fontSize: 11, color: TONE.muted, flex: "none" } }, c.status || "?"),
+								h("span", {
+									style: {
+										flex: 1, minWidth: 0, fontSize: 12,
+										color: "var(--dsw-alias-label-secondary)",
+										overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+									},
+								}, c.name),
+								h("span", { style: { fontSize: 11, color: TONE.muted, flex: "none" } }, (c.evidenceCount || 0) + " E")
+							);
+						})
+					)
+				) : null,
+				h("div", { style: Object.assign({}, S.caption, { marginTop: 10 }) },
+					"新任务先在对话里调用 begin_case(goal, samples)。"
+				)
 			);
 		}
 		var hyps = cd.hypotheses || [];
@@ -519,6 +557,7 @@ exports.apply = function apply(ctx) {
 							color: "var(--dsw-alias-label-secondary)", fontSize: 11, cursor: "pointer",
 						},
 					}, "刷新"),
+					h("span", { style: S.pill(TONE.info) }, "本会话"),
 					h("span", { style: S.pill(TONE.success) }, "OPEN")
 				),
 				cd.goal ? h("div", { style: Object.assign({}, S.body, { marginTop: 6 }) }, cd.goal) : null,
@@ -869,14 +908,22 @@ exports.apply = function apply(ctx) {
 		React.useEffect(function () {
 			var alive = true;
 			function poll() {
+				var sid = null;
+				try {
+					if (props.sessionId) sid = props.sessionId;
+					else if (ctx.sidebarRight && ctx.sidebarRight.mounted && typeof ctx.sidebarRight.mounted.getSnapshot === "function") {
+						sid = ctx.sidebarRight.mounted.getSnapshot();
+					}
+				} catch (err) {}
+				var caseQuery = sid ? "?sessionId=" + encodeURIComponent(String(sid)) : "";
 				Promise.all([
 					fetch('/api/helmd/tools').then(function(r){return r.json()}).catch(function(){return null}),
 					fetch('/api/helmd/intercept').then(function(r){return r.json()}).catch(function(){return null}),
 					fetch('/api/helmd/health').then(function(r){return r.json()}).catch(function(){return null}),
-					fetch('/api/helmd/case').then(function(r){return r.json()}).catch(function(){return null}),
+					fetch('/api/helmd/case' + caseQuery).then(function(r){return r.json()}).catch(function(){return null}),
 					fetch('/api/helmd/profile').then(function(r){return r.json()}).catch(function(){return null}),
-					fetch('/api/helmd/case/findings').then(function(r){return r.json()}).catch(function(){return null}),
-					fetch('/api/helmd/case/evidence').then(function(r){return r.json()}).catch(function(){return null}),
+					fetch('/api/helmd/case/findings' + caseQuery).then(function(r){return r.json()}).catch(function(){return null}),
+					fetch('/api/helmd/case/evidence' + caseQuery).then(function(r){return r.json()}).catch(function(){return null}),
 				]).then(function(results) {
 					if (!alive) return;
 					setData({
