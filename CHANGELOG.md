@@ -12,6 +12,10 @@
 - **README 重写**：首屏改成定位 + 安装 + 5 分钟上手；长工具表/架构钩子收进 `<details>`；赞助商保留首屏卡片位（按旧版布局）；版本改用 Release badge 动态读取；中英文同步
 - **首屏图标**：新增 `assets/helm-d-light.svg` / `assets/helm-d-dark.svg`（Hd 单字标 + d 碗内 `>_` + 裂纹），README 用 `<picture>` 按深浅色切换
 
+### 运行时
+
+- **工作台品牌图标**：header 胶囊与右侧栏 `helmd 工作台` tab 左侧改用 Hd 标记（内联 SVG，`currentColor`，与 README 的 `helm-d-{light,dark}.svg` 同源）
+
 ## [0.5.2] — 2026-10-27（原生工作台 + L3/L4-lite 自主状态）
 
 本版把工作台收回 DSH 官方槽位（破甲 / Case / 拦截 / 关于），补齐模型侧 L3 自主状态包与 L4-lite 调度建议，收紧结论 `repro_cmd` 门禁，并加固 Star 流程；移除 `find_tool` 与模型评测后工具数为 33，检查集 19 项。分发形态不变：payload / references / profiles 全封印。

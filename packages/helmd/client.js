@@ -81,6 +81,57 @@ function IconAgentPreset(props) {
 	);
 }
 
+// Brand mark shared by the header capsule and the right-sidebar tab. Same
+// geometry as assets/helm-d-{light,dark}.svg, cropped to its ink bounds so a
+// 14-16px UI slot shows the full Hd silhouette instead of a tiny glyph
+// floating in a 256px viewBox.
+let helmdMarkSeq = 0;
+function HelmdMark(props) {
+	const height = (props && props.height) || 16;
+	const width = Math.round(height * 206 / 168);
+	const maskId = React.useMemo(function () {
+		return "helmd-mark-crack-" + (++helmdMarkSeq);
+	}, []);
+	return h("svg", {
+		width,
+		height,
+		viewBox: "20 44 206 168",
+		fill: "none",
+		className: props && props.className,
+		"aria-hidden": "true",
+		style: Object.assign({ flex: "none", display: "block" }, props && props.style),
+	},
+		h("defs", null,
+			h("mask", { id: maskId, maskUnits: "userSpaceOnUse", x: 0, y: 0, width: 256, height: 256 },
+				h("rect", { width: 256, height: 256, fill: "#fff" }),
+				h("path", {
+					d: "M224 100 208 114 216 124 202 136",
+					fill: "none",
+					stroke: "#000",
+					strokeWidth: 8,
+					strokeLinecap: "round",
+					strokeLinejoin: "round",
+				}),
+			),
+		),
+		h("g", {
+			fill: "none",
+			stroke: "currentColor",
+			strokeWidth: 28,
+			strokeLinecap: "round",
+			strokeLinejoin: "round",
+		},
+			h("path", { d: "M38 60V196M94 60V196M38 128H94" }),
+			h("path", { d: "M208 60V196" }),
+			h("g", { mask: "url(#" + maskId + ")" },
+				h("path", { d: "M208 112C166 108 142 128 142 148C142 172 166 188 208 184" }),
+			),
+			h("path", { d: "M164 134 180 148 164 162", strokeWidth: 12 }),
+			h("path", { d: "M184 162H198", strokeWidth: 12 }),
+		),
+	);
+}
+
 exports.inject = ["slots", "sidebarRight", "sidebarRightTabs"];
 
 exports.apply = function apply(ctx) {
@@ -234,8 +285,8 @@ exports.apply = function apply(ctx) {
 					boxSizing: "border-box",
 				},
 			},
-				h(IconAgentPreset, {
-					size: 14,
+				h(HelmdMark, {
+					height: 16,
 					style: {
 						color: "var(--dsw-alias-state-success-primary)",
 						opacity: 0.95,
@@ -972,7 +1023,7 @@ exports.apply = function apply(ctx) {
 
 	function HelmdTabTitle() {
 		return h("div", { style: { display: "flex", alignItems: "center", gap: 5 } },
-			h(IconAgentPreset, { size: 12, style: { color: "var(--dsw-alias-state-success-primary)" } }),
+			h(HelmdMark, { height: 14, style: { color: "var(--dsw-alias-state-success-primary)" } }),
 			h("span", null, "helmd 工作台"),
 		);
 	}
