@@ -10,6 +10,7 @@
 ### 文档
 
 - **README 重写**：首屏改成定位 + 安装 + 5 分钟上手；长工具表/架构钩子收进 `<details>`；赞助商保留首屏卡片位（按旧版布局）；版本改用 Release badge 动态读取；中英文同步
+- **首屏图标**：新增 `assets/helm-d-light.svg` / `assets/helm-d-dark.svg`（Hd 单字标 + d 碗内 `>_` + 裂纹），README 用 `<picture>` 按深浅色切换
 
 ## [0.5.2] — 2026-10-27（原生工作台 + L3/L4-lite 自主状态）
 

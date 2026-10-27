@@ -1,5 +1,10 @@
 <div align="center">
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/helm-d-dark.svg">
+  <img src="assets/helm-d-light.svg" width="104" alt="helm-d icon">
+</picture>
+
 # helm-d
 
 **DeepSeek Harness 的破甲安全分析插件。**
