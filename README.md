@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="assets/helm-d.svg" width="104" alt="helm-d icon" />
-
 # helm-d
 
 **DeepSeek Harness 的破甲安全分析插件。**
