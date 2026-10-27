@@ -7,6 +7,10 @@
 
 ## [Unreleased]
 
+### 文档
+
+- **README 重写**：首屏改成定位 + 安装 + 5 分钟上手；长工具表/架构钩子收进 `<details>`；赞助商移到文末；版本改用 Release badge 动态读取；中英文同步
+
 ## [0.5.2] — 2026-10-27（原生工作台 + L3/L4-lite 自主状态）
 
 本版把工作台收回 DSH 官方槽位（破甲 / Case / 拦截 / 关于），补齐模型侧 L3 自主状态包与 L4-lite 调度建议，收紧结论 `repro_cmd` 门禁，并加固 Star 流程；移除 `find_tool` 与模型评测后工具数为 33，检查集 19 项。分发形态不变：payload / references / profiles 全封印。

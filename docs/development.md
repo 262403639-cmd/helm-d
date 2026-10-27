@@ -30,7 +30,7 @@ pnpm test:checks
 | preset 平台行 | 宿主 `standard.patch.yml` | `gen-preset.mjs` → `preset.generated.patch.yml` |
 | 参考知识 | `references/` | `build-sealed.mjs` → `references.dat` |
 | 工具清单 | `src/**` 的 `defineTool` | `tool-catalog.check.mjs` |
-| 版本号 | `packages/helmd/package.json` | README / tag / CHANGELOG |
+| 版本号 | `packages/helmd/package.json` | Release badge（动态读取）/ tag / CHANGELOG |
 
 ## 更新日志与版本同步
 

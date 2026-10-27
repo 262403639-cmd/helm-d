@@ -1,523 +1,221 @@
 <div align="center">
 
-# helmd
+# helm-d
 
-**Armor-piercing all-in-one security-analysis plugin for DeepSeek Harness**
+**A security-analysis plugin for DeepSeek Harness.**
 
-Mount one preset · reverse engineering · pentest · unpacking · license bypass · Android / Web / Native / Protocol / Malware / AI-Security ready on day one
+33 tools · 362 on-demand references · enforced evidence chain · three hot-swappable persona profiles
 
-English | [中文](README.md)
+[![Release](https://img.shields.io/github/v/release/ADWMC/helm-d?style=flat-square&label=release)](https://github.com/ADWMC/helm-d/releases)
+[![CI](https://github.com/ADWMC/helm-d/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ADWMC/helm-d/actions/workflows/ci.yml)
+[![Node](https://img.shields.io/badge/node-%3E%3D22.19-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
-[![Telegram](https://img.shields.io/badge/Telegram-@helm_xD-26A5E4?style=flat&logo=telegram)](https://t.me/helm_xD)
-Official QQ group: **213266664**
-[![topic: dsh-plugin](https://img.shields.io/badge/topic-dsh--plugin-2ea44f)](https://github.com/topics/dsh-plugin)
-[![topic: deepseek-harness](https://img.shields.io/badge/topic-deepseek--harness-2ea44f)](https://github.com/topics/deepseek-harness)
-[![Node >=22.19](https://img.shields.io/badge/Node-%3E%3D22.19.0-green)](https://nodejs.org)
-[![pnpm 11.7.0](https://img.shields.io/badge/pnpm-11.7.0-orange)](https://pnpm.io)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[Install](#install) · [Quick start](#quick-start) · [Capabilities](#capabilities) · [Workbench](#workbench) · [Tools](#tools) · [Docs](#docs) · [中文](README.md)
 
 </div>
 
-> For learning and research only. You must comply with local laws and regulations; you are responsible for the consequences of using this project.
+> **For authorized security testing only.** Full disclaimer at the [bottom](#disclaimer).
 
-## Sponsors
+## What it is
 
-> Want your project listed here? [Open a `sponsor` issue](https://github.com/ADWMC/helm-d/issues/new?labels=sponsor).
+helm-d is a [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) plugin. It does not modify the host binary; it adds four things through cordis hooks:
 
-<details open>
-<summary>Expand / collapse the sponsor list</summary>
-<br/>
+- **33 tools** across Android / Web / Native / Protocol / Malware / AI-Security, plus the case lifecycle, routing and tool ledger.
+- **An evidence chain**: tool output lands in `evidence/`; conclusions must cite E ids and a reproducible `repro_cmd`.
+- **On-demand knowledge**: 362 reference documents read through `read_reference`, never stuffed into the system prompt.
+- **Three persona tiers**: core / stealth / redteam-max, switched from the workbench without restarting the host.
 
-<table>
-<tr>
-<td width="180" align="center" valign="middle"><a href="https://github.com/3641397194-wq/gpt6-Astra"><img src="https://github.com/3641397194-wq.png?size=200" alt="toki · ColdCoffee" width="150"></a></td>
-<td><strong>Thanks to toki for sponsoring this project</strong> · <a href="https://github.com/3641397194-wq/gpt6-Astra">ColdCoffee · Break-Open Workbench</a> · <a href="https://coldcoffeeai.com/">Relay</a><br/>
-One-click break-open and one-click uninstall for eleven LLM clients, with installers for Windows, macOS (arm64 · x64) and Linux. Tick the clients, write once, then send the passphrase <code>冷咖啡</code> inside each app; uninstall restores the files to their pre-write state.</td>
-</tr>
-<tr>
-<td width="180" align="center" valign="middle"><a href="https://huablog.org"><img src="https://cloudflareimg.cdn.sn/i/6a255150f1770_1780830544.jpeg" alt="Hua · Vector" width="150"></a></td>
-<td><strong>Thanks to Hua for sponsoring this project</strong> · <a href="https://huablog.org">Vector</a><br/>
-One relay for 70+ models — Claude / Gemini / Codex / DeepSeek / Grok / Kimi / GLM. OpenAI from 0.065x, Plus 0.085x, Pro 0.165x, kiro 0.22x, ccmax 1.2x.</td>
-</tr>
-</table>
+It is **not** an engine patch: no on-disk changes to approvals or the sandbox, and no separate process. It can coexist with patch-style tools.
 
-</details>
+## Install
 
-> Maintainer docs: release checklist, preset single-source sync, and the pitfalls table live in [MAINTENANCE.md](MAINTENANCE.md); version history in [CHANGELOG.md](CHANGELOG.md).
+**Requirements**: Node >= 22.19 and the [`dsh`](https://github.com/deepseek-ai/deepseek-harness) CLI.
 
-## Why helmd
-
-<table>
-<tr>
-<td width="50%">
-
-### Armor-piercing, all-in-one
-
-Reverse engineering, unpacking, license bypass and pentest workflows — Android · Web · Native · Protocol · Malware · AI-Security converge in a single preset, together with the evidence chain. Install once and all 33 tools are ready — no per-domain wiring.
-
-</td>
-<td width="50%">
-
-### One bundle · zero wiring
-
-Everything converges into a single `@adwmc/helm-d` bundle: bootstrap, router, domain tools, the toolbox and the runtime hook layer (description washing / evidence wrap / advisory / LLM stream audit), plus the web workbench. `install.ps1` / `install.sh` fetch a prebuilt tarball from Releases and wire everything in one command.
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### Knowledge on demand
-
-Domain knowledge, rules, workflows and cases live in `references/` (362 docs) and are read on demand — never injected into the system prompt to decide for the model. Lean tokens, intact judgment.
-
-</td>
-<td width="50%">
-
-### First-turn tool anchoring
-
-The first top-level request only exposes shell + `read`; the full catalog of 33 tools opens after promotion. A text-only first reply can't trap the session — request two always sees the full catalog.
-
-On Windows, the native terminal tool is `pwsh`. To use WSL, call `wsl.exe` through
-`pwsh`, for example `wsl.exe -- bash -lc 'command'` (or
-`wsl.exe -d <distro> -- ...` for a specific distribution). On Linux, use `bash`.
-Do not search for aliases such as `powershell`, `shell`, or `terminal`.
-
-</td>
-</tr>
-</table>
-
-## Why
-
-DSH security-analysis capability used to be scattered across domain bundles: `add` Android, `add` Web, `add` Native — and you still had to wire up the preset and router yourself.
-
-helmd packs six domains + evidence tooling + first-turn bootstrap + the runtime hook layer + toolbox into one bundle:
-
-`one preset` &ensp; `one bundle` &ensp; `33 tools` &ensp; `zero manual wiring`
-
-Install once, send `helmd` in a session, and every domain's tools are ready.
-
-## Architecture
-
-```mermaid
-flowchart LR
-    Q["Question"] --> SP["system-prompt/assemble"]
-    SP --> BS["bootstrap first-turn narrowing<br/>shell + read"]
-    BS --> P{"promoted?"}
-    P -->|no| BS
-    P -->|yes| ROUTER["router domain routing"]
-    ROUTER --> ANDROID["Android"]
-    ROUTER --> WEB["Web"]
-    ROUTER --> NATIVE["Native"]
-    ROUTER --> PROTO["Protocol"]
-    ROUTER --> MAL["Malware"]
-    ROUTER --> AI["AI-Security"]
-    ROUTER --> EVID["Evidence"]
-    ANDROID & WEB & NATIVE & PROTO & MAL & AI & EVID --> REF["read_reference reads references/ on demand"]
-    REF --> OUT["model's own judgment + confidence-scored conclusion"]
-
-    style BS fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e40af
-    style ROUTER fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#15803d
-    style REF fill:#fffbeb,stroke:#f59e0b,stroke-width:2px,color:#92400e
-    style OUT fill:#15803d,color:#fff,stroke:#166534,stroke-width:2px
+```bash
+dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/latest/download/helm-d.tgz
+dsh web
 ```
 
-- **First-turn narrowing**: the first top-level request only exposes shell + `read`; the full catalog opens after promotion
-- **Domain routing**: `router` routes problems via `skill_catalog` / `read_reference`
-- **On-demand references**: `references/` is a knowledge base, not an injection; the model reads and decides
-- **Runtime hook layer**: tool-description washing, advisory ledger, LLM stream audit (see below)
+The boot-time health check validates and, when needed, repairs the preset against your installed dsh — no manual YAML editing.
 
-## Runtime hook layer (0.3.x)
-
-`apply()` in `packages/helmd/src/index.ts` assembles five runtime mechanisms in a fixed order, all riding the host cordis waterfalls with zero standalone processes:
-
-```text
-tool-wash description washing → persist evidence wrap → bootstrap first-turn narrowing
-  → advisory-hook + llm-stream-hook
-  → router + ledger + caseflow + tool discovery + domain tools
-```
-
-| Component | Mount point | Responsibility |
-|-----------|-------------|----------------|
-| `tool-wash.ts` | `tools.register` wrap | Rewrites "a denial is final / do not retry" tool-description phrasing into continuable wording (defensive layer); hits are logged (verbose) |
-| `persist.ts` | `tools.register` wrap | All later-registered domain tools auto-persist output to `evidence/` (soft gate, no per-tool edits) |
-| `advisory-hook.ts` | `system-prompt/assemble` (outer) | Reckons the previous turn's advisories against the session log; detects delivery refusal / hedging phrasing and injects stance metrics (no-hedge / challenged / report-prefix / normalizer); sensitive input passes `input-normalizer.ts` first |
-| `llm-stream-hook.ts` | `llm/stream` | Refusal closed loop: intercept (content / reasoning early-abort) → history laundering → prefill ladder (assistant-last → pair) re-entered via the `llm` service → honest passthrough on the final attempt; refusals / retries hit the ledger, counts and excerpts go to `~/.dsh/helmd-stream-intercept.log` |
-
-## Runtime rules
-
-A helmd session follows these fixed rules:
-
-### Activation & session
-
-| Rule | Behavior |
-|------|----------|
-| Activation word | The bundled persona defines an activation word (default `helmd`); exact matches get the activation reply, everything else is a task |
-| First-turn anchoring | Only shell + `read` on the first top-level request; after the first tool call or assistant message the session promotes and every tool opens |
-| Subagent exemption | Sessions with delegationDepth > 0 always see the full catalog |
-| Analysis ladder | Ponytail-style: `analysis_mode` sets lite (quick triage) / full (standard flow, default) / deep (full evidence chain); per-session persistence, pick the shallowest rung that answers the task |
-| Deterministic routing | `route_task(hint)` keyword-matches a PRIMARY route plus a one-line rationale (route before you act); falls back to the decision tree |
-| Case workspace | `begin_case` creates an on-disk workspace (sample/evidence/scripts/CASE.md); tool outputs auto-persist to the evidence chain; `record_finding` enforces E-id citations and `repro_cmd`; after compaction `case_status()` restores state from disk and returns an `[autonomy]` packet (hypotheses / findings / evidence / playbook / next action) |
-| Stream interception | The `llm/stream` interceptor routes content / reasoning refusals through the closed loop (history laundering → prefill ladder nested re-request → honest passthrough); counts and excerpts go to `~/.dsh/helmd-stream-intercept.log`, surfaced in the workbench "intercept log" panel |
-
-### Knowledge & routing
-
-| Rule | Behavior |
-|------|----------|
-| Knowledge on demand | All 362 reference docs live in `references/`, read via `read_reference`, never injected into the system prompt |
-| Catalog = metadata | `skill_catalog` only routes domains/signals and draws no conclusions: `tree` triage, `methodology`, `patterns`, `install` tool setup, `jvm` JVM decryption, etc. |
-| References ≠ hard rules | Docs inform the model's judgment; they are never binding constraints |
-
-### Tools & scripts
-
-| Rule | Behavior |
-|------|----------|
-| Call chain | request → `defineTool.execute()` → `runSeam()` → subprocess (ctx.subprocess preferred, execFile fallback) |
-| Python resolution | `resolveCommand()` probes python → py → python3 in order; Windows-compatible via the py launcher |
-| Path safety | Every file read/write passes `assertWithinRoot()`; out-of-scope paths are rejected outright |
-| External tool acquisition | Probe locally first (`where` / `--version`) → otherwise install into the largest non-C drive at `X:\Reverse\` → download through a proxy → record versions; see `references/toolbox/tool-install.md` |
-| Releases first | Tools with GitHub Releases always get prebuilt binaries, never built from source |
-
-### Evidence
-
-| Rule | Behavior |
-|------|----------|
-| Report template | Conclusions carry severity / confidence grades; template in `references/evidence/reporting.md` |
-| Case workspaces | `begin_case` creates an on-disk workspace; the persist hook auto-saves tool output into `evidence/`; conclusions must cite E ids and `repro_cmd` (both validated by `record_finding`) |
+> The web UI shows a Star prompt on first start. It **does not gate any feature** and can be skipped. Troubleshooting: [Star gate help](docs/star-gate-help.md).
 
 ## Quick start
 
-**Prerequisites**: a working [`dsh`](https://github.com/deepseek-ai/deepseek-harness) CLI and pnpm.
+1. Open a new DSH session and select the **helmd** agent preset.
+2. Send `helmd` to activate it.
+3. Do one read/list action first. The first turn only exposes `shell + read`; the full 33-tool catalog (including `begin_case`) appears on the next turn — that is the host promotion mechanism, not a broken plugin.
+4. Give it a task, for example:
 
-Windows (double-click `install.bat`, or run via PowerShell):
+   > Analyze how `samples/app.apk` is protected, open a case, collect evidence, and finish with a conclusion that includes `repro_cmd`.
 
-```powershell
-.\install.ps1
-```
-
-macOS / Linux:
-
-```bash
-./install.sh
-```
-
-Or via the **npm channel** (published as [`@adwmc/helm-d`](https://www.npmjs.com/package/@adwmc/helm-d)) — `plugin add` is a pnpm forwarder, so registry names pass straight through:
-
-```bash
-dsh plugin --profile web add @adwmc/helm-d
-```
-
-The installer downloads the latest Release `helmd.tgz`, installs it into the profile, and writes the preset. **The preset's platform rows are not snapshot-copied — the installer derives them live on your machine from the dsh host `standard` preset you actually have installed** (`gen-preset.mjs --out`), falling back to the bundled snapshot only when the generator is unavailable. Platform rows therefore always match your own dsh version and never drift on host upgrades. Then boot:
-
-```bash
-dsh web
-```
-
-Send `helmd` in a session to activate.
-
-## Preset / host sync (three-layer fingerprint defense)
-
-Since dsh 0.1.7 a preset is no longer a file in a deployment directory: it is one composition row (`@deepseek-ai/dsh-agent-preset`) the bundle declares through `dsh.bundle.patch`. Every generated `packages/helmd/preset.generated.patch.yml` opens with a host fingerprint line:
-
-```yaml
-# gen-preset: host=<sha256 of installed dsh standard>
-```
-
-A hand-copied preset once drifted after a host upgrade and assembled a crippled 44-tool catalog (incident 2026-08-26, see `docs/incident-2026-08-26-preset-stale-generation.md`). The same verdict now guards three surfaces:
-
-| Layer | Entry | Behavior |
-|------|------|------|
-| CLI | `node packages/helmd/scripts/gen-preset.mjs --check` | fingerprint moved → `HOST UPGRADED`; content drift → `STALE (content drift)`; non-zero exit |
-| Install/update | `install.ps1` / `setup-preset.ps1` | generates against the local host at install time, no manual copying |
-| HTTP | `GET /api/helmd/health` | boot-time verdict served for diagnostics; no settings card |
-
-## Health endpoint
-
-The preset health verdict is evaluated once per dsh boot and served at `GET /api/helmd/health` for diagnostics. The settings-page card was removed in the 0.2.1 host line: its old slot (`settings.plugin.item`) no longer exists, and the official settings seats are `settings.plugins.tab` / `plugins.item`. The verdict itself is unchanged:
-
-Each dsh boot evaluates this package's artifact `preset.generated.patch.yml` (redirect it with `HELMD_PRESET_PATCH`, for tests) against the installed host:
-
-| Badge | Meaning | Action |
-|------|------|------|
-| 🟢 Healthy | artifact matches the host | none |
-| 🟠 Host upgraded | dsh was upgraded, platform rows stale | re-run install / setup-preset, restart |
-| 🔴 Content drift | artifact hand-edited or persona changed without re-sync | regenerate as above |
-| 🟣 Legacy preset | artifact lacks the fingerprint header, provenance unknown | regenerate |
-| ⚪ Not generated | artifact missing | run install or gen-preset |
-
-The endpoint returns both fingerprints (12 chars), version, the **drift-repair verdict**, evaluation time, and both paths for fast diagnosis.
-
-**Drift repair policy**: on drift the boot-time check repairs automatically, but **only files it can prove are its own artifact** — the package patch carrying the `gen-preset` fingerprint header (`STALE` content drift / `HOST_UPGRADED` host upgraded) is regenerated from the current host standard; one without a header (`LEGACY_PRESET`, possibly hand-written) is only reported and left alone. Every write keeps the previous file as `.bak` first, runs a **structural artifact assertion** right after (row set = host standard + `helmd`, no duplicate ids, the composition row retargeted to `preset-helmd` / `id: helmd`, `helm-d` declared once, persona carries our activation line) and reports `artifact check OK (N rows …)` before reminding you to restart dsh and assert the first request is `[pwsh, read]` on Windows / `[bash, read]` elsewhere (MAINTENANCE §8) — that live half needs a session and stays with you. Switches: `HELMD_AUTO_HEAL=0` reports everything (hand-managed artifacts), `=1` overwrites even a header-less file.
-
-## Security Workbench
-
-The workbench now has four tabs: three live data panels fed through `/api/helmd/{profile,case,intercept}` (15s polling), plus an About tab with an on-demand update check (`/api/helmd/update`):
-
-- **Sidebar-first entry**: Clicking the capsule button opens (and focuses) the `helmd` workbench tab in the right sidebar; the compact popover is only a fallback when the host has no sidebarRight service.
-- **Armor Profile**: one-click hot switch between the sealed `core` / `stealth` / `redteam-max` personas. The live `helm-d:persona` section is disposed and re-registered in place, so the next model call uses the new body — no host restart. The choice persists to `$DSH_HOME/storages/helmd/profile.json`.
-- **Case**: hypothesis chain, findings, evidence list, and open hypotheses for the current case; refreshes on tab open.
-- **Intercept Log**: counts and excerpts of the transport-layer refusal closed loop (`~/.dsh/helmd-stream-intercept.log`).
-- **About**: author, disclaimer, update address, changelog, and an on-demand "Check updates" (GitHub Releases, npm registry fallback).
-
-## Install from the plugin store
-
-helmd has been submitted to [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) ([PR #2708](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/2708)). Once merged it is one click away on [dshmarket.com](https://dshmarket.com) or in the dshmarket plugin UI; the CLI equivalents are:
-
-```bash
-# Prebuilt tarball (skips build approval)
-dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/latest/download/helmd.tgz
-
-# Or from source
-dsh plugin --profile web add github:ADWMC/helm-d/tree/main/packages/helmd
-```
-
-**A store install delivers everything, preset included (tools + bootstrap + router + the composition row). Only after upgrading the dsh host should you re-derive the platform rows against the local host:**
-
-```bash
-# Windows (PowerShell)
-%USERPROFILE%\.dsh\profiles\web\node_modules\@adwmc\helm-d\scripts\setup-preset.ps1
-
-# macOS / Linux
-~/.dsh/profiles/web/node_modules/@adwmc/helm-d/scripts/setup-preset.sh
-```
-
-The script regenerates the package's own `preset.generated.patch.yml` against the dsh installed on that machine (the previous file is kept as `.bak`) and writes nothing under `~/.dsh`; restart dsh and pick the `helmd` preset when starting a session. Against a pre-0.1.7 host it fails loudly and leaves the shipped artifact in place.
-
-## Verification
-
-```bash
-dsh --profile web --dump-config                        # the @adwmc/helm-d host row (resolves to dist/health.js),
-                                                       # plus `- id: preset-helmd` and the `@adwmc/helm-d/agent` row
-node packages/helmd/scripts/gen-preset.mjs --check     # preset check OK (non-zero: follow the fingerprint hint)
-```
-
-After sending `helmd` in a session:
+5. For a structured conclusion, let it run the case flow:
 
 ```text
-skill_catalog        → returns domain/signal routes (incl. jvm, install and newer routes)
-native_reference     → reads the Native reference
-detect_packer <file> → identifies the PE/ELF protector
+begin_case(goal, samples)
+  → tool output is written to evidence/ (E-001, E-002…)
+  → record_finding(title, detail, evidence_ids, repro_cmd)
+  → end_case(summary)
 ```
 
-The preset health verdict is served at `GET /api/helmd/health` (the old settings card is gone in the 0.2.1 host line). Any of the above returning normally means the install succeeded.
+Citing an E id that does not exist is rejected. `repro_cmd` is required: a conclusion without a reproducible command is not a conclusion.
 
-## Package & tools
+## Capabilities
 
-| Package | Injects | Responsibility | Tools |
-| --- | --- | --- | --- |
-| `@adwmc/helm-d` | tools + systemPrompt | All-domain security analysis in one bundle | see below |
+| Capability | What you get |
+|---|---|
+| **Six domains** | Android unpacking/Frida, Web exploitation, Native packers and anti-reversing, Protocol capture, Malware IOC/YARA, AI-Security |
+| **Case & evidence** | On-disk workspace, automatic evidence capture, E-id validation, `repro_cmd` gate; `case_status` restores context after compaction |
+| **Persona profiles** | core / stealth / redteam-max; `POST /api/helmd/profile` disposes and re-registers the persona section in place — no host restart |
+| **On-demand references** | 362 documents routed by `skill_catalog` and read by `read_reference`, not injected into the system prompt |
+| **Autonomy packet** | `case_status` returns hypotheses, findings, evidence, dead ends, the matching playbook and the next action |
+| **Workbench** | Four tabs — Armor / Case / Intercept / About — with a sidebar-first entry, backed by `/api/helmd/*` |
 
-| Domain | Tool | Purpose |
-| --- | --- | --- |
-| **Router** | `skill_catalog` | Domain routing catalog |
-| **Router** | `read_reference` | Read routed reference docs |
-| **Android** | `apk_fingerprint` | APK framework/HTTP/obfuscation detection |
-| **Web** | `web_reference` | Web security reference docs |
-| **Web** | `bot_analyze` | Puppeteer Bot analysis |
-| **Native** | `native_reference` | Native/binary reference docs |
-| **Native** | `detect_packer` | PE/ELF packer detection |
-| **Native** | `scan_strings` | ASCII/UTF-16LE string extraction |
-| **Native** | `xor_bruteforce` | Single-byte XOR brute force |
-| **Native** | `encoding_detect` | Base64/Hex/ROT13/XOR decode |
-| **Protocol** | `protocol_reference` | Protocol/traffic reference docs |
-| **Protocol** | `pcap_parse` | PCAP TCP/UDP stream extraction |
-| **Protocol** | `state_machine` | Protocol state-machine inference |
-| **Protocol** | `parse_har` | HAR request/response parsing |
-| **Malware** | `malware_reference` | Malware sample reference docs |
-| **Malware** | `ioc_extract` | IOC extraction |
-| **Malware** | `yara_gen` | YARA rule generation |
-| **AI-Security** | `ai_reference` | AI/LLM security reference docs |
-| **AI-Security** | `llm_sim` | LLM app simulation testing |
-| **Evidence** | `evidence_reference` | Evidence/reporting reference docs |
-| **Case** | `begin_case` / `case_status` / `record_finding` / `end_case` | On-disk case lifecycle: open/resume/validated conclusions/close (deep mode requires findings with `repro_cmd`) |
-| **Case** | `save_evidence` | Persist arbitrary external CLI output into the evidence chain (E-numbered) |
-| **Case** | `record_hypothesis` / `update_hypothesis` | Hypothesis chain: one open at a time; confirmed/refuted require an observation and evidence ids |
-| **Evidence** | `triage_artifact` | Offline triage |
-| **Evidence** | `hash_artifact` | SHA-256 hashing |
-| **Toolbox** | `tool_recommend` | Tool library recommendations |
-| **Router** | `route_task` | Deterministic routing: task hint → PRIMARY route + rationale |
-| **Ledger** | `tool_memory` | Cross-session tool/dead-end ledger: `register` binds a tool, `note` records pitfalls and falsified routes (an evidence id is required), `sync` folds registered tool outcomes in explicitly, `search` queries the ledger; the shelf overview rides along in `route_task` output (read tools never write) |
-| **Session** | `analysis_mode` | Analysis intensity ladder lite/full/deep (Ponytail-style) |
+<details>
+<summary>What the three persona profiles change (expand)</summary>
 
-Each `*_reference` tool reads its own `references/<domain>/` on demand; the entry point is its `index.md`.
+| Profile | Positioning | Content |
+|---|---|---|
+| **core** | General-purpose default | Full base rules |
+| **stealth** | Low-noise | core + minimal output / read-first / single-target focus |
+| **redteam-max** | Heavier pentest | core + full attack chain / dual-column output / complete deliverables |
 
-## Alternatives
+All three are sealed in `profiles.dat`. Switching disposes the old section and re-registers it in place; no host restart.
 
-| Approach | Why not |
-|----------|---------|
-| Ten standalone bundles | 10 adds + manual preset + router wiring; seam.ts copied 9 times |
-| Raw shell tools only | no domain knowledge; the model guesses; unreproducible conclusions |
-| Stuff knowledge into the system prompt | token blow-up and it overrides the model's judgment |
-| helmd single bundle | one install aggregates everything, shared seam, knowledge read on demand |
+</details>
 
-## Common commands
+## Workbench
 
-```bash
-pnpm install                # install deps (prepare auto-runs tsc)
-pnpm build                  # build every workspace package (only helmd ships)
-pnpm typecheck              # tsc --noEmit type gate on a clean tree
-```
+Click the `helmd` workbench button in the DSH session header. It opens the right sidebar first and falls back to a popover only when the sidebar service is unavailable:
 
-Local tarball delivery:
+- **Profiles**: switch between the three personas live.
+- **Case**: hypotheses, findings, evidence and open questions.
+- **Intercept**: counts and excerpts from the stream refusal loop.
+- **About**: version, author, disclaimer, update address, changelog and an on-demand update check.
 
-```powershell
-.\scripts\repack.ps1                                    # emit dist-tgz\helmd.tgz (+ stable alias)
-dsh plugin --profile web add .\dist-tgz\helmd.tgz       # install into the web profile
-```
+## Tools
 
-Self-update (compares against the latest GitHub Release; downloads and reinstalls when newer, refuses to downgrade a local build):
+Most-used entry points: `begin_case` / `case_status` / `record_finding` / `end_case` / `route_task` / `read_reference` / `analysis_mode`.
 
-```powershell
-.\scripts\update.ps1                # check and update the web profile
-.\scripts\update.ps1 -CheckOnly     # versions only, change nothing
-.\scripts\update.ps1 -Force         # reinstall even when versions match
+<details>
+<summary><strong>All 33 tools (expand by domain)</strong></summary>
 
-./scripts/update.sh                 # macOS / Linux
-```
+| Domain | Tools |
+|---|---|
+| **Case** | `begin_case` `case_status` `record_finding` `save_evidence` `end_case` |
+| **Case / hypothesis** | `record_hypothesis` `update_hypothesis` |
+| **Routing / knowledge** | `skill_catalog` `read_reference` `route_task` `analysis_mode` |
+| **Android** | `apk_fingerprint` |
+| **Web** | `web_reference` `bot_analyze` |
+| **Native** | `native_reference` `detect_packer` `scan_strings` `xor_bruteforce` `encoding_detect` |
+| **Protocol** | `protocol_reference` `pcap_parse` `state_machine` `parse_har` |
+| **Malware** | `malware_reference` `ioc_extract` `yara_gen` |
+| **AI-Security** | `ai_reference` `llm_sim` |
+| **Evidence** | `evidence_reference` `triage_artifact` `hash_artifact` |
+| **Toolbox** | `tool_recommend` `tool_memory` |
 
-## Deployment
+</details>
 
-One-command install is above under Quick start; the manual steps are below. Prerequisites: the `@adwmc/helm-d` package published (see Publishing).
+## References
 
-### 1. Install the bundle into a profile
+The 362 documents live in [`references/`](packages/helmd/references/index.md): Android unpacking and Frida templates, Web exploitation playbooks, Native packer and anti-reversing notes, Protocol capture and state machines, Malware IOC/YARA, AI-Security prompt injection, and evidence/report templates. The model reads them on demand; they are ammunition, not hard rules.
 
-```bash
-dsh plugin --profile web add @adwmc/helm-d
-```
-
-`dsh plugin` forwards to pnpm inside the profile directory; the package lands in `$DSH_HOME/profiles/node_modules/`.
-
-### 2. The preset comes with the package — nothing to mount
-
-On dsh >= 0.1.7 the preset is the composition row declared through `dsh.bundle.patch`, so installing the package installs the preset. The old `$DSH_HOME/.agent-presets/helmd/` deployment directory is gone; on a pre-0.1.7 host this package's preset simply is not loaded. Re-derive once **after a host upgrade**:
-
-```bash
-# macOS / Linux
-bash packages/helmd/scripts/setup-preset.sh
-
-# Windows (PowerShell)
-.\packages\helmd\scripts\setup-preset.ps1
-```
-
-### 3. Pick the preset
-
-Choose `helmd` in the preset picker at the top of a new session — installers never change your default.
-
-### 4. Boot and activate
-
-```bash
-dsh web
-```
-
-Send `helmd` in a session to activate. `DSH_HOME` defaults to `~/.dsh`; substitute the path if you customized it.
-
-## Directory layout
+## How it runs
 
 ```text
-helmd/
-├── packages/
-│   └── helmd/                 the shipped package (single bundle)
-│       ├── src/
-│       │   ├── bootstrap.ts   first-turn tool-narrowing filter
-│       │   ├── tool-wash.ts   tool-description washing (refusal-terminal phrasing → continuable, defensive)
-│       │   ├── persist.ts     evidence-chain persistence wrap for all tools
-│       │   ├── advisory*.ts   advisory ledger + prompt-assembly injection (refusal / hedge detection)
-│       │   ├── llm-stream-hook.ts  llm/stream refusal closed loop (launder → prefill ladder nested re-request) & audit
-│       │   ├── input-normalizer.ts sensitive input → engineering-term normalization
-│       │   ├── router.ts      skill_catalog / read_reference routing
-│       │   ├── health.ts      settings-page health face (boot-time fingerprint eval → settings namespace)
-│       │   ├── seam.ts        shared IO seam (fs / subprocess / cmd resolve / path guard)
-│       │   └── tools/         9 tool modules (33 tools)
-│       ├── client.js          browser half: workbench + gate overlay (lazy-CJS factory, no build chain)
-│       ├── references/        362 on-demand reference docs (8 domains + toolbox)
-│       ├── scripts/           analysis scripts + ai-security corpus/ledger + gen-preset.mjs + setup-preset.{ps1,sh}
-│       ├── presets/           persona single source + preset.yml (picker order/description)
-│       ├── preset.generated.patch.yml  preset artifact (generated: host standard + persona + helmd row)
-│       └── cordis.patch.yml   bundle mount manifest (helmd tools row + helmd-health row)
-├── install.ps1/.sh/.bat       one-command installer
-└── docs/                      design docs & postmortems
+request → first-turn anchor (shell + read) → route_task
+        → domain tools / read_reference → evidence/ (E ids)
+        → conclusion with confidence and repro_cmd
 ```
 
-> Other directories under `packages/` are legacy split bundles superseded by the helmd single bundle; kept for archival only, no longer published.
+<details>
+<summary>Architecture and runtime hooks (expand)</summary>
 
-## Build
+- `bootstrap`: first turn exposes only the platform shell + `read`; promotes after a tool call or assistant message.
+- `gate`: registers the `helm-d:persona` section; the Star panel is a notice layer only and never gates a feature.
+- `persist`: captures output from every later-registered domain tool into `evidence/`.
+- `advisory-hook` / `llm-stream-hook` / `ica-context`: refusal detection, stream interception loop and behavior examples.
+- `router` + `case`: domain routing, case lifecycle and the `[autonomy]` state packet.
 
-Requires pnpm; build targets ES2022 / NodeNext.
+See [architecture](docs/architecture.md) and [design principles](docs/principles.md).
+
+</details>
+
+## Validation
+
+- The eight original prompts passed the 60-second no-refusal protocol **8/8**; full data and grading are in the [evaluation report](docs/reports/FINAL-REPORT-v9.md).
+- BoosterX v2.2.4.3 (.NET) license bypass: **32,316 method bodies** restored and **7,726 encrypted constants** decrypted under ConfuserEx; see the [case study](docs/case-studies/boosterx-dotnet-license-bypass.md).
+
+## Compatibility, update and uninstall
+
+| Item | Requirement |
+|---|---|
+| DSH | 0.2.x (this release tested on `0.2.1-rc.2`) |
+| Node | `>= 22.19.0` |
+| Platform | Windows uses `pwsh`; Linux / macOS use `bash`; WSL via `wsl.exe` |
 
 ```bash
-pnpm install
-pnpm build
+# Update: remove and re-add so the latest release is fetched
+dsh plugin --profile web remove @adwmc/helm-d
+dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/latest/download/helm-d.tgz
+
+# Uninstall
+dsh plugin --profile web remove @adwmc/helm-d
 ```
 
-The root `pnpm build` builds `@adwmc/helm-d`; `pnpm typecheck` runs the `tsc --noEmit` type gate on a clean tree.
-
-## Dependencies
-
-- `@deepseek-ai/cordis` `^4.0.2`
-- `@deepseek-ai/dsh-tools` `>=0.1.5-rc.1 <0.2.0-0` (host cohort: the full dsh 0.1.5-rc.2 family is pinned in `pnpm-workspace.yaml` overrides)
-- `@deepseek-ai/dsh-settings` `>=0.1.5-rc.1 <0.2.0-0`
-- `@deepseek-ai/schemastery` `^3.18.2`
-
-> **The prerelease-range trap**: semver admits a prerelease only when the range names a prerelease of the same `major.minor.patch`. `>=0.1.0-rc.1 <0.2.0-0` therefore does **not** admit `0.1.5-rc.1` (only `0.1.0-rc.x`), and neither does `^0.1.1-rc.2`. Declaring the host cohort requires `>=0.1.5-rc.1 <0.2.0-0`.
-
-Versions are pinned to the host cohort via `overrides` in `pnpm-workspace.yaml` (the whole `@deepseek-ai/dsh-*` family plus cordis and schemastery); after `pnpm install`, `pnpm peers check` must be clean — otherwise the graph carries cross-cohort peers.
-
-## Publishing
-
-- The root package is `private: true` and is not published; `@adwmc/helm-d` is.
-- The `files` whitelist: `dist`, `client.js`, `references`, `scripts`, `presets`, `cordis.patch.yml`, `preset.generated.patch.yml`.
-- The `prepare` script runs `tsc` automatically before publishing.
-- Current version: whatever `packages/helmd/package.json` says (no version numbers are hard-coded in the docs).
-- Release assets: `adwmc-helm-d-<ver>.tgz` plus the stable alias `helmd.tgz` (used by the store's tarball field and the installers).
-
-## Risks & mitigations
-
-| Risk | Mitigation |
-|------|------------|
-| DSH host upgrade breaks compat | peer deps on cordis / dsh-tools, pinned via `overrides`; three-layer preset fingerprint defense above exposes drift automatically |
-| Missing `python` on the host | seam auto-probes python / py / python3, falls back to the `py` launcher |
-| Bundle/preset version drift | version 0.3.1, tarball and release published together |
-| Reference knowledge goes stale | read on demand, model's own judgment, non-binding |
-
-## Acknowledgements
-
-This project integrates design ideas and implementation patterns from many excellent open-source projects, drawing on the experience of many community pioneers. Any resemblance is a tribute to great design.
-
-- [ADWMC/helm-x](https://github.com/ADWMC/helm-x) — prompt injection and scoring design
-- [yynxxxxx/Codex-X](https://github.com/yynxxxxx/Codex-X) — prompt templates and visual management
-
-## Case study
-
-**BoosterX v2.2.4.3 (.NET) license bypass** — a full end-to-end validation of the helmd methodology:
-
-- Live recovery of all **32,316 method bodies** and decryption of **7,726 encrypted constants** under ConfuserEx dynamic anti-tamper
-- Runtime extraction of the RSA-2048 public key; online signed-token model identified, offline forgery ruled out
-- Three static-rebuild dead ends documented with root causes, then a persistent unlock via the **zero-modification, zero-injection** official managed extension mechanism — verified by UIAutomation and in-process readback
-- Full evidence chain, difficulty assessment, and server-side hardening recommendations included
-
-📄 Full write-up: [docs/case-studies/boosterx-dotnet-license-bypass.md](docs/case-studies/boosterx-dotnet-license-bypass.md)
+For a specific version, replace the URL with `https://github.com/ADWMC/helm-d/releases/download/vX.Y.Z/helm-d.tgz`.
 
 ## Docs
 
-- [docs/principles.md](docs/principles.md) — design principles
-- [docs/architecture.md](docs/architecture.md) — architecture
-- [docs/architecture-v2.md](docs/architecture-v2.md) — architecture v2 (persona + tool anchoring + on-demand knowledge)
-- [docs/case-studies/](docs/case-studies/boosterx-dotnet-license-bypass.md) — case studies
-- [docs/skills-reference/](docs/skills-reference/authorized-pentest-framework.md) — imported pentest skill digests (authorized framework / practitioner)
-- [docs/skillopt-methodology.md](docs/skillopt-methodology.md) — SkillOpt methodology: train a skill document like weights (six-stage loop + held-out gate), with a mapping onto helmd persona self-optimization
+- [Star gate help](docs/star-gate-help.md)
+- [Design principles](docs/principles.md)
+- [Architecture](docs/architecture.md)
+- [Development and release](docs/development.md)
+- [Security boundary and reporting](SECURITY.md)
+- [Maintenance](MAINTENANCE.md)
+- [Changelog](CHANGELOG.md)
+- [Case study: BoosterX .NET license bypass](docs/case-studies/boosterx-dotnet-license-bypass.md)
+- [Eight-task evaluation report](docs/reports/FINAL-REPORT-v9.md)
+- [Master plan: professional RE + pentest chains](docs/design/MASTER-PLAN-PRO-RE-PENTEST.md)
 
-## Acknowledgments
+## Community and support
 
-- [dsh-purge](https://github.com/YuJunZhiXue/dsh-purge) (YuJunZhiXue) — the tool-description wash table (`tool-wash.ts`) and the input normalization lexicon reference its `core.js` patch #34/#36 and `default-prompt-inject.md` implementation. With thanks.
+- Telegram: [`@helm_xD`](https://t.me/helm_xD)
+- QQ group: `213266664`
+- Questions and requests: [GitHub Issues](https://github.com/ADWMC/helm-d/issues)
+- Star gate issues: [Star gate help](docs/star-gate-help.md)
+
+If helm-d is useful to you, a Star is appreciated.
+
+## Sponsors
+
+| Sponsor | About |
+|---|---|
+| <img src="https://github.com/3641397194-wq.png?size=80" width="28" alt="toki"> [toki · 冷咖啡](https://github.com/3641397194-wq/gpt6-Astra) | One-click jailbreak/uninstall for eleven LLM clients on Windows / macOS / Linux. [Relay](https://coldcoffeeai.com/) |
+| <img src="https://cloudflareimg.cdn.sn/i/6a255150f1770_1780830544.jpeg" width="28" alt="Hua"> [Hua · Vector](https://huablog.org) | One relay for 70+ models; OpenAI from 0.065x, Plus 0.085x, Pro 0.165x, kiro 0.22x, ccmax 1.2x. |
+
+Want your project here? [Open a `sponsor` issue](https://github.com/ADWMC/helm-d/issues/new?labels=sponsor).
+
+## Acknowledgements
+
+helm-d combines design ideas and implementation patterns from these open-source projects:
+
+- [ADWMC/helm-x](https://github.com/ADWMC/helm-x) — prompt injection and scoring design
+- [yynxxxxx/Codex-X](https://github.com/yynxxxxx/Codex-X) — prompt templates and visual management
+- [dsh-purge](https://github.com/YuJunZhiXue/dsh-purge) (YuJunZhiXue) — tool-description washing and input normalization reference
+- [dsh-purge-community](https://github.com/kingcharleslzy-ai/dsh-purge) (Jueze-2019, MIT) — the `presets/boost.txt` tail override block
 
 ## Contributing
 
-Issues and PRs are welcome. Before making changes, read [docs/principles.md](docs/principles.md) and keep the architecture constraint: reference knowledge is read on demand and never overrides the model's own judgment.
+Issues and PRs are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/principles.md](docs/principles.md) first. Two architectural constraints stay fixed: **evidence must enter the chain, and references are read on demand**.
 
 ## License
 
-Released under the [MIT License](LICENSE) — free to use, modify, and distribute. See [LICENSE](LICENSE).
+[MIT](LICENSE).
 
-## AI-generated & legal risk
+## Disclaimer
 
-Some or all code in this repository was generated with AI assistance and may contain errors or be unsuitable for your context. Review it yourself and judge whether it fits your use case and jurisdiction before use; you are responsible for complying with local laws and for the consequences of using this project. Provided "AS IS" under MIT, without warranty of any kind.
+This project is for learning, exchange and authorized security assessment only. You must ensure that every operation targets assets you own or have written authorization to test. Unauthorized scanning, probing or intrusion against third-party systems is illegal.
+
+The project is provided "as is" under the MIT license, without warranty of any kind. Some code was generated with AI assistance; review it before use and decide whether it fits your use case and jurisdiction.
