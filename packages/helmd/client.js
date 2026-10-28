@@ -1130,7 +1130,7 @@ exports.apply = function apply(ctx) {
 		// Do not cover the app before the operator has done anything; the CLI
 		// code channel still exists from boot.
 		React.useEffect(function () {
-			var delay = setTimeout(function () { setReady(true); }, 8000);
+			var delay = setTimeout(function () { setReady(true); }, 2000);
 			return function () { clearTimeout(delay); };
 		}, []);
 		// The panel disappears the moment the star lands (gating:false). Keep a
