@@ -46,6 +46,10 @@ let nextFlowAt = 0
 /** Token was obtained but the star watch ended without a star. Hold here
  *  instead of issuing a fresh device code on the next poll. */
 let hold: 'authorized-unstarred' | undefined
+/** At least one helm-d agent scope registered the gate. The host API exists
+ *  globally (health entry), so without this flag a non-helmd session could
+ *  start a device flow just by polling /api/helmd/gate. */
+let gateRegistered = false
 
 // Persona section lifecycle. The disposer is what makes the profile switch hot:
 // disposing and re-registering under the same name emits `system-prompt/change`,
@@ -69,12 +73,26 @@ export function skipThisLaunch(): void {
 
 /** Whether the gate is actively gating assemblies (locked AND not skipped). */
 export function isGating(): boolean {
-  return !isUnlocked() && !launchSkipped
+  return gateRegistered && !isUnlocked() && !launchSkipped
 }
 
 /** Status snapshot for the web gate panel (GET /api/helmd/gate). */
 export function gateStatus(): Record<string, unknown> {
   const state = readState()
+  if (!gateRegistered) {
+    return {
+      gating: false,
+      unlocked: isUnlocked(),
+      skipped: launchSkipped,
+      starred: state?.starred ?? false,
+      login: state?.login,
+      verificationUri: 'https://github.com/login/device',
+      repo: REPO,
+      error: lastFlowError,
+      hold,
+      retryAt: nextFlowAt > Date.now() ? new Date(nextFlowAt).toISOString() : undefined,
+    }
+  }
   // Re-issue the device session when it expired — the panel poll is the
   // heartbeat; without this the panel sticks at "生成中…" after expiry.
   if (!isUnlocked() && !launchSkipped && hold === undefined &&
@@ -281,6 +299,7 @@ export function registerGate(ctx: Context): void {
   // after the plugin ('helmd_unlock') collided with the 'helmd' activation
   // keyword — the model read activation as a gate-status request — and kept
   // star wording in every session even after unlock.
+  gateRegistered = true
   ensureFlow()
 }
 

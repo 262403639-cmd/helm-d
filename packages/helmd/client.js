@@ -154,32 +154,10 @@ exports.apply = function apply(ctx) {
 		// If no preset is associated, follow AgentPresetLabel contract and return null
 		if (preset === undefined) return null;
 
-		// If preset is not helmd, render standard non-clickable badge cleanly
-		if (preset !== "helmd") {
-			return h("span", {
-				className: "helmd-preset-static",
-				style: {
-					display: "inline-flex",
-					alignItems: "center",
-					gap: 4,
-					maxWidth: 180,
-					padding: "0 4px",
-					height: 22,
-					borderRadius: 6,
-					background: "var(--dsw-alias-fill-tsp-secondary)",
-					fontSize: 12,
-					lineHeight: "22px",
-					color: "var(--dsw-alias-label-secondary)",
-					whiteSpace: "nowrap",
-					overflow: "hidden",
-					textOverflow: "ellipsis",
-				},
-				title: preset,
-			},
-				h(IconAgentPreset, { size: 14, style: { opacity: 0.7 } }),
-				preset
-			);
-		}
+		// Only helm-d sessions get a workbench capsule. Other presets keep the
+		// official AgentPresetLabel untouched: this registration deliberately
+		// uses its own id instead of shadowing `agent-preset`.
+		if (preset !== "helmd") return null;
 
 		const [open, setOpen] = React.useState(false);
 		const rootRef = React.useRef(null);
@@ -300,57 +278,46 @@ exports.apply = function apply(ctx) {
 						fontWeight: 600,
 						color: "var(--dsw-alias-label-primary)",
 					},
-				}, "helmd"),
-				h("span", {
-					style: {
-						fontSize: 10,
-						lineHeight: "13px",
-						padding: "1px 4px",
-						borderRadius: 4,
-						background: "var(--dsw-alias-state-success-tertiary)",
-						color: "var(--dsw-alias-state-success-primary)",
-						fontWeight: 500,
-						letterSpacing: "0.2px",
-					},
 				}, "工作台"),
 				h(ChevronIcon, { open: open }),
 			),
-			open ? h("div", {
-				className: "helmd-workbench-popover",
-				style: {
-					position: "absolute",
-					top: "calc(100% + 6px)",
-					left: 0,
-					zIndex: 1000,
-					width: 470,
-					maxWidth: "min(470px, 92vw)",
-					height: 580,
-					maxHeight: "min(580px, 84vh)",
-					borderRadius: 16,
-					background: "var(--dsw-alias-bg-layer-1)",
-					border: "1px solid var(--dsw-alias-border-l1)",
-					boxShadow: "0 16px 36px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.25)",
-					overflow: "hidden",
-					display: "flex",
-					flexDirection: "column",
-					animation: "helmd-fade-in .15s ease-out",
+				open ? h("div", {
+					className: "helmd-workbench-popover",
+					style: {
+						position: "absolute",
+						top: "calc(100% + 6px)",
+						left: 0,
+						zIndex: 1000,
+						width: 470,
+						maxWidth: "min(470px, 92vw)",
+						height: 580,
+						maxHeight: "min(580px, 84vh)",
+						borderRadius: 16,
+						background: "var(--dsw-alias-bg-layer-1)",
+						border: "1px solid var(--dsw-alias-border-l1)",
+						boxShadow: "0 16px 36px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.25)",
+						overflow: "hidden",
+						display: "flex",
+						flexDirection: "column",
+						animation: "helmd-fade-in .15s ease-out",
+					},
 				},
-			},
-				h(HelmdWorkbenchPanel, {
-					sessionId: props.sessionId,
-					onClose: () => setOpen(false),
-				})
-			) : null
-		);
-	}
+					h(HelmdWorkbenchPanel, {
+						sessionId: props.sessionId,
+						onClose: () => setOpen(false),
+					})
+				) : null,
+				h(HelmdGatePanel)
+			);
+		}
 
-	// Register with priority: -1 to smoothly shadow official agent-preset in the header
+	// Keep the official agent-preset label. The capsule is a separate workbench
+	// action, so non-helmd sessions are never shadowed by this plugin.
 	ctx.slots.inject("conversation.session.header.actions", function* () {
 		yield ctx.slots.register({
 			name: "conversation.session.header.actions",
-			id: "agent-preset",
-			order: -10,
-			priority: -1,
+			id: "helm-d:workbench",
+			order: -9,
 		}, HelmdPresetCapsuleButton);
 	});
 
@@ -1083,7 +1050,6 @@ exports.apply = function apply(ctx) {
 				id: "helm-d:eval",
 				kind: "eval",
 				title: () => "helmd 工作台",
-					guide: [{ id: "helmd", order: 20, title: () => "helmd 工作台", description: () => "破甲档位 / Case / 拦截日志" }],
 			});
 		}, "helmd: sidebar tab definition");
 	}
@@ -1092,13 +1058,12 @@ exports.apply = function apply(ctx) {
 		yield ctx.slots.register({ name: "sidebar.right.pane.tab", key: "helm-d:eval" }, HelmdWorkbenchPanel);
 		yield ctx.slots.register({ name: "sidebar.right.pane.tab", key: "eval" }, HelmdWorkbenchPanel);
 	});
-
 	ctx.slots.inject("sidebar.right.pane.tab.title", function* () {
 		yield ctx.slots.register({ name: "sidebar.right.pane.tab.title", key: "helm-d:eval" }, HelmdTabTitle);
 		yield ctx.slots.register({ name: "sidebar.right.pane.tab.title", key: "eval" }, HelmdTabTitle);
 	});
 
-	// ── Star gate overlay (shell.overlay slot, no document.body writes) ──
+	// ── Star gate overlay (rendered only inside the helmd header capsule) ──
 	function HelmdGatePanel() {
 		var state = React.useState(null);
 		var status = state[0]; var setStatus = state[1];
@@ -1329,9 +1294,8 @@ exports.apply = function apply(ctx) {
 		);
 	}
 
-	ctx.slots.inject("shell.overlay", function* () {
-		yield ctx.slots.register({ name: "shell.overlay", id: "helm-d:gate", order: 90 }, HelmdGatePanel);
-	});
+	// The star gate overlay is rendered inside the helmd-only header capsule,
+	// not in the root shell: sessions running another agent preset never see it.
 };
 return module.exports;
 } });

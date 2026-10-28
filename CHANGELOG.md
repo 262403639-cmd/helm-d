@@ -14,7 +14,8 @@
 
 ### 安装/发布
 
-- **修复 Issue #5**：README / README.en / About 页的安装更新命令改用版本化 URL；`releases/latest/download/*` 不再作为 profile 依赖（滚动资产会让 pnpm lockfile sha512 失配，`ERR_PNPM_TARBALL_INTEGRITY`）。新增 `docs/install-troubleshooting.md` 自救文档和 `install-url` 检查（21 项 checks）
+- **修复 Issue #5**：README / README.en / About 页的安装更新命令改用版本化 URL；`releases/latest/download/*` 不再作为 profile 依赖（滚动资产会让 pnpm lockfile sha512 失配，`ERR_PNPM_TARBALL_INTEGRITY`）。新增 `docs/install-troubleshooting.md` 自救文档和 `install-url` 检查（22 项 checks）
+- **非 helmd 会话隔离**：header 胶囊不再抢官方 `agent-preset` 座位，非 helmd 直接返回 null；Star gate 从全局 `shell.overlay` 移入 helmd-only capsule；侧栏 guide 不再向所有会话展示 helm-d tab；`/api/helmd/gate` 在 gate 未注册时不启动设备流。新增 `client-scope` 检查
 
 ## [0.5.2] — 2026-10-28（重发：Case 会话隔离 + 原生工作台 + Hd 图标）
 
