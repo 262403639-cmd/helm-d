@@ -1106,6 +1106,14 @@ exports.apply = function apply(ctx) {
 		var copied = copyState[0]; var setCopied = copyState[1];
 		var readyState = React.useState(false);
 		var isReady = readyState[0]; var setReady = readyState[1];
+		var checkState = React.useState(false);
+		var checking = checkState[0]; var setChecking = checkState[1];
+		var noteState = React.useState("");
+		var note = noteState[0]; var setNote = noteState[1];
+		var celebrateState = React.useState(false);
+		var celebrate = celebrateState[0]; var setCelebrate = celebrateState[1];
+		var sawGating = React.useRef(false);
+		var celebrated = React.useRef(false);
 
 		React.useEffect(function () {
 			var alive = true;
@@ -1125,8 +1133,39 @@ exports.apply = function apply(ctx) {
 			var delay = setTimeout(function () { setReady(true); }, 8000);
 			return function () { clearTimeout(delay); };
 		}, []);
+		// The panel disappears the moment the star lands (gating:false). Keep a
+		// short success toast so that disappearance reads as success, not as a
+		// failed load. Only celebrate a transition we actually saw gating, so a
+		// page opened after the star stays quiet.
+		React.useEffect(function () {
+			if (!status) return;
+			if (status.gating) {
+				sawGating.current = true;
+				return;
+			}
+			if (status.starred && sawGating.current && !celebrated.current) {
+				celebrated.current = true;
+				setCelebrate(true);
+				var timer = setTimeout(function () { setCelebrate(false); }, 4500);
+				return function () { clearTimeout(timer); };
+			}
+		}, [status]);
 
-		if (!status || !status.gating || !isReady) return null;
+		if (!status) return null;
+		if (!status.gating) {
+			if (!celebrate) return null;
+			return h("div", {
+				role: "status", "aria-live": "polite",
+				style: {
+					position: "fixed", top: 16, right: 16, zIndex: 1000,
+					padding: "10px 14px", borderRadius: "var(--dsw-radius-sm)",
+					background: "var(--dsw-alias-bg-layer-2)", color: "var(--dsw-alias-label-primary)",
+					border: "0.5px solid var(--dsw-alias-border-l3)",
+					boxShadow: "0 12px 32px rgba(0,0,0,.32)", fontSize: 12,
+				},
+			}, "Star 已确认，感谢支持");
+		}
+		if (!isReady) return null;
 
 		function copyCode() {
 			var code = status.userCode || "";
@@ -1141,9 +1180,19 @@ exports.apply = function apply(ctx) {
 			} catch (e) { /* clipboard is best-effort */ }
 		}
 		function readStatus() {
+			setChecking(true);
+			setNote("");
 			fetch("/api/helmd/gate").then(function (r) { return r.json(); }).then(function (j) {
-				if (j && j.ok) setStatus(j.data);
-			}).catch(function () {});
+				if (j && j.ok) {
+					setStatus(j.data);
+					if (j.data && j.data.starred) setNote("已确认 Star，感谢支持。");
+					else setNote("已刷新：还没有检测到 Star；确认已给仓库点 Star 后再试。");
+				} else {
+					setNote("刷新失败，请稍后重试。");
+				}
+			}).catch(function () {
+				setNote("刷新失败，请稍后重试。");
+			}).then(function () { setChecking(false); });
 		}
 		function skip() {
 			fetch("/api/helmd/gate/skip").then(function () { setStatus(null); }).catch(function () { setStatus(null); });
@@ -1239,8 +1288,14 @@ exports.apply = function apply(ctx) {
 							},
 						}, copied ? "已复制" : (status.userCode || "生成中…")),
 						h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
-							h("button", { type: "button", onClick: readStatus, className: "helmd-gate-btn", style: Object.assign({ flex: 1 }, secondary) }, "我已完成，刷新状态")
-						)
+							h("button", {
+								type: "button", onClick: readStatus, disabled: checking, className: "helmd-gate-btn",
+								style: Object.assign({ flex: 1, opacity: checking ? 0.6 : 1, cursor: checking ? "default" : "pointer" }, secondary),
+							}, checking ? "刷新中…" : "我已完成，刷新状态")
+						),
+						note ? h("div", {
+							style: { marginTop: 6, fontSize: 11, lineHeight: "16px", color: "var(--dsw-alias-label-tertiary)" },
+						}, note) : null
 					),
 				status.error ? h("div", {
 					style: { marginTop: 6, fontSize: 11, color: "var(--dsw-alias-state-error-primary)", wordBreak: "break-word" },
