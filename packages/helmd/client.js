@@ -805,6 +805,8 @@ exports.apply = function apply(ctx) {
 
 		var version = String((result && result.currentVersion) || props.version || "unknown").replace(/^v/i, "");
 		var latest = result && result.latestVersion ? String(result.latestVersion).replace(/^v/i, "") : "";
+		var installTag = version && version !== "unknown" ? version : "X.Y.Z";
+		var installUrl = "https://github.com/ADWMC/helm-d/releases/download/v" + installTag + "/helm-d.tgz";
 		var linkStyle = { color: "var(--dsw-alias-state-business-primary)", textDecoration: "none" };
 		var codeStyle = {
 			margin: "8px 0 0", padding: "10px 12px",
@@ -872,10 +874,10 @@ exports.apply = function apply(ctx) {
 			h("div", { style: S.card },
 				h("div", { style: S.title }, "更新地址"),
 				h("div", { style: Object.assign({}, S.body, { marginTop: 4 }) },
-					h("a", { href: "https://github.com/ADWMC/helm-d/releases/latest", target: "_blank", rel: "noopener noreferrer", style: linkStyle }, "github.com/ADWMC/helm-d/releases/latest")
+					h("a", { href: "https://github.com/ADWMC/helm-d/releases", target: "_blank", rel: "noopener noreferrer", style: linkStyle }, "github.com/ADWMC/helm-d/releases")
 				),
-				h("pre", { style: codeStyle }, "dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/latest/download/helm-d.tgz"),
-				h("div", { style: Object.assign({}, S.caption, { marginTop: 6 }) }, "仓库内也可用 scripts/update.ps1（Windows）或 scripts/update.sh（macOS / Linux）")
+				h("pre", { style: codeStyle }, "dsh plugin --profile web add " + installUrl),
+				h("div", { style: Object.assign({}, S.caption, { marginTop: 6 }) }, "版本化 URL；不要用 latest/download 写进 profile 依赖（会导致 pnpm lockfile sha512 失配）。")
 			),
 				h("div", { style: S.card },
 					h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" } },

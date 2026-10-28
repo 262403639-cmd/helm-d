@@ -61,9 +61,11 @@ It is **not** an engine patch: no on-disk changes to approvals or the sandbox, a
 **Requirements**: Node >= 22.19 and the [`dsh`](https://github.com/deepseek-ai/deepseek-harness) CLI.
 
 ```bash
-dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/latest/download/helm-d.tgz
+dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/download/v0.5.2/helm-d.tgz
 dsh web
 ```
+
+> Use a versioned URL (`vX.Y.Z`). `releases/latest/download/*` is a rolling address; as a profile dependency it makes pnpm's lockfile sha512 fail after the next release (`ERR_PNPM_TARBALL_INTEGRITY`). See [install troubleshooting](docs/install-troubleshooting.md).
 
 The boot-time health check validates and, when needed, repairs the preset against your installed dsh — no manual YAML editing.
 
@@ -184,19 +186,20 @@ See [architecture](docs/architecture.md) and [design principles](docs/principles
 | Platform | Windows uses `pwsh`; Linux / macOS use `bash`; WSL via `wsl.exe` |
 
 ```bash
-# Update: remove and re-add so the latest release is fetched
+# Update: remove first, then install the target version (never latest/download)
 dsh plugin --profile web remove @adwmc/helm-d
-dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/latest/download/helm-d.tgz
+dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/download/v0.5.2/helm-d.tgz
 
 # Uninstall
 dsh plugin --profile web remove @adwmc/helm-d
 ```
 
-For a specific version, replace the URL with `https://github.com/ADWMC/helm-d/releases/download/vX.Y.Z/helm-d.tgz`.
+Replace `v0.5.2` with the target Release tag; do not use `releases/latest/download/*` as a profile dependency.
 
 ## Docs
 
 - [Star gate help](docs/star-gate-help.md)
+- [Install troubleshooting (ERR_PNPM_TARBALL_INTEGRITY)](docs/install-troubleshooting.md)
 - [Design principles](docs/principles.md)
 - [Architecture](docs/architecture.md)
 - [Development and release](docs/development.md)

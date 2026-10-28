@@ -61,9 +61,11 @@ helm-d 是 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) �
 **前提**：Node >= 22.19，已安装 [`dsh`](https://github.com/deepseek-ai/deepseek-harness) CLI。
 
 ```bash
-dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/latest/download/helm-d.tgz
+dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/download/v0.5.2/helm-d.tgz
 dsh web
 ```
+
+> 安装/更新请使用带 `vX.Y.Z` 的版本化 URL。`releases/latest/download/*` 是滚动地址，写进 profile 依赖后，下次发版会让 pnpm lockfile 的 sha512 失配（`ERR_PNPM_TARBALL_INTEGRITY`）。遇到见 [安装故障排查](docs/install-troubleshooting.md)。
 
 首次启动时健康检查会按本机 dsh 版本校验/修复 preset，不需要手工改 YAML。
 
@@ -184,19 +186,20 @@ DSH 会话头部点 `helmd 工作台`，优先打开右侧栏（sidebar 不可�
 | 平台 | Windows 用 `pwsh`；Linux / macOS 用 `bash`；WSL 通过 `wsl.exe` |
 
 ```bash
-# 更新：先卸载再装，确保拿到最新 Release
+# 更新：先卸载，再装目标版本（不要用 latest/download）
 dsh plugin --profile web remove @adwmc/helm-d
-dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/latest/download/helm-d.tgz
+dsh plugin --profile web add https://github.com/ADWMC/helm-d/releases/download/v0.5.2/helm-d.tgz
 
 # 卸载
 dsh plugin --profile web remove @adwmc/helm-d
 ```
 
-指定版本时把 URL 换成 `https://github.com/ADWMC/helm-d/releases/download/vX.Y.Z/helm-d.tgz`。
+把 `v0.5.2` 换成目标 Release 的 tag；不要用 `releases/latest/download/*` 作为 profile 依赖。
 
 ## 文档
 
 - [Star 弹窗帮助](docs/star-gate-help.md)
+- [安装故障排查（ERR_PNPM_TARBALL_INTEGRITY）](docs/install-troubleshooting.md)
 - [设计原则](docs/principles.md)
 - [架构](docs/architecture.md)
 - [开发与发布](docs/development.md)

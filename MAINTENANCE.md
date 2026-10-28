@@ -40,7 +40,7 @@
 git status --porcelain            # 必须干净
 
 # 0.5 检查（必须在封包前跑：build-sealed 会把 dist 移进 .real，检查只认明文 dist）
-pnpm test:checks                  # 必须 20 PASS
+pnpm test:checks                  # 必须 21 PASS
 
 # 1. bump 版本号（唯一位置）
 node -e "const fs=require('fs');const p='packages/helmd/package.json';const pkg=JSON.parse(fs.readFileSync(p,'utf8'));pkg.version='X.Y.Z';fs.writeFileSync(p,JSON.stringify(pkg,null,2)+'\n')"
@@ -65,16 +65,19 @@ Remove-Item "release-notes-X.Y.Z.md"
 
 # 6. 发布后核验（三条都要绿）
 gh api repos/ADWMC/helm-d/releases/latest -q '.tag_name, (.assets|length)'   # = X.Y.Z, 3
-Invoke-WebRequest -Method Head "https://github.com/ADWMC/helm-d/releases/latest/download/helmd.tgz"  # 200
+Invoke-WebRequest -Method Head "https://github.com/ADWMC/helm-d/releases/download/vX.Y.Z/helmd.tgz"  # 200
 .\scripts\update.ps1                                                          # installed == latest
 ```
+
+> ⚠️ **安装/更新文档一律用版本化 URL**（`.../releases/download/vX.Y.Z/...`）。`latest/download/*` 只用于旧链接/手工下载，**不要写进 profile 依赖或 lockfile**：滚动资产会让 pnpm 的 sha512 失配（Issue #5，`ERR_PNPM_TARBALL_INTEGRITY`）。
 
 > ⚠️ **历史事故**：v0.1.6 创建时漏传了 installer 三件套。v0.5.1fix 的 release 实际只有 3 个 tgz，没有 installer。
 >
 > ⚠️ **改名记录（@dsh-security/helmd → @adwmc/helm-d，2026-09）**：无 scope 的 `helm-d` 被 npm
-> 以防拼写抢注拒绝（与 helmet 过近），定名 `@adwmc/helm-d`。update 脚本已改为下载稳定别名
-> `helmd.tgz`，与版本化资产名解耦——当前 release 资产保持 3 件 tgz：`adwmc-helm-d-X.Y.Z.tgz` +
-> `helm-d.tgz` + `helmd.tgz`；installer 脚本仍随仓库根目录提供，不再作为 release 资产上传。
+> 以防拼写抢注拒绝（与 helmet 过近），定名 `@adwmc/helm-d`。update 脚本会先解析最新 tag，再下载
+> `releases/download/v<tag>/helmd.tgz` 到本地缓存后安装，不会把滚动地址写进 profile。当前 release
+> 资产保持 3 件 tgz：`adwmc-helm-d-X.Y.Z.tgz` + `helm-d.tgz` + `helmd.tgz`；两个别名只用于手工下载/
+> 兼容旧链接，installer 脚本仍随仓库根目录提供，不再作为 release 资产上传。
 
 ## 3. 改人格 / preset 的流程
 
@@ -165,7 +168,8 @@ profile         %USERPROFILE%\.dsh\profiles\web\   （node_modules\@adwmc\helm-d
 preset          随包 packages\helmd\preset.generated.patch.yml（dsh >= 0.1.7 无 .agent-presets 部署目录）
 宿主 dsh        %APPDATA%\npm\node_modules\@deepseek-ai\dsh（版本以 `dsh --version` 为准；标准 preset 在其 node_modules\@deepseek-ai\dsh-web-app\presets\standard.patch.yml）
 tgz 缓存        %USERPROFILE%\.dsh\.tgz-cache\
-稳定别名        https://github.com/ADWMC/helm-d/releases/latest/download/helmd.tgz
+版本化下载      https://github.com/ADWMC/helm-d/releases/download/vX.Y.Z/helmd.tgz（profile 依赖用这个）
+latest 别名    https://github.com/ADWMC/helm-d/releases/latest/download/helmd.tgz（仅手工/兼容旧链接，勿写入 lockfile）
 商店页          https://dshmarket.com/p/ADWMC/helm-d--packages-helmd/
 PR #2708        已合并 (2026-08-23)
 当前版本        见 packages/helmd/package.json（以它为准，勿信记忆）

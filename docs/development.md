@@ -30,12 +30,13 @@ pnpm test:checks
 | preset 平台行 | 宿主 `standard.patch.yml` | `gen-preset.mjs` → `preset.generated.patch.yml` |
 | 参考知识 | `references/` | `build-sealed.mjs` → `references.dat` |
 | 工具清单 | `src/**` 的 `defineTool` | `tool-catalog.check.mjs` |
-| 版本号 | `packages/helmd/package.json` | Release badge（动态读取）/ tag / CHANGELOG |
+| 版本号 | `packages/helmd/package.json` | README 安装 URL（版本化）/ Release badge（动态）/ tag / CHANGELOG |
 
 ## 更新日志与版本同步
 
 - 单一事实源：根目录 `CHANGELOG.md`。开发中的变更写 `[Unreleased]`，发布时改成 `[<version>] — YYYY-MM-DD`。
 - 版本号只在 `packages/helmd/package.json` 改；About 页“检查更新”读取这个版本，与 GitHub Release tag（去掉 `v`）比较。
+- README / README.en 的安装与更新命令必须用 `releases/download/v<version>/...`；每次发版同步这两个 URL。禁止把 `releases/latest/download/*` 写进 profile 依赖（Issue #5，pnpm lockfile 的 sha512 会失配）。About 页用当前版本动态拼 URL，不需要手改。
 - 每次发布同步三处工具清单：
   - `MAINTENANCE.md` 的“当前计数基准：N 个工具”；
   - `README.md` / `README.en.md` 的工具数与工具表；

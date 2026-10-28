@@ -12,6 +12,10 @@
 - **Star 面板反馈**：检测到 Star 后保留 4.5 秒“Star 已确认，感谢支持”提示，避免面板消失被误认为失败；“我已完成，刷新状态”增加刷新中 / 未检测到 / 刷新失败即时反馈
 - **Star 弹窗延迟**：从 8 秒缩短到 2 秒，保留避免遮挡首屏的作用，但测试/首次启动更快看到面板
 
+### 安装/发布
+
+- **修复 Issue #5**：README / README.en / About 页的安装更新命令改用版本化 URL；`releases/latest/download/*` 不再作为 profile 依赖（滚动资产会让 pnpm lockfile sha512 失配，`ERR_PNPM_TARBALL_INTEGRITY`）。新增 `docs/install-troubleshooting.md` 自救文档和 `install-url` 检查（21 项 checks）
+
 ## [0.5.2] — 2026-10-28（重发：Case 会话隔离 + 原生工作台 + Hd 图标）
 
 本版把工作台收回 DSH 官方槽位（破甲 / Case / 拦截 / 关于），补齐模型侧 L3 自主状态包与 L4-lite 调度建议，收紧结论 `repro_cmd` 门禁，并加固 Star 流程；重发补上 Case 按会话绑定与提示词注入、工作台 Hd 图标与 README 重写。移除 `find_tool` 与模型评测后工具数为 33，检查集 20 项。分发形态不变：payload / references / profiles 全封印。
